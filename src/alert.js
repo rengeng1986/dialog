@@ -1,0 +1,38 @@
+define(function (require, exports, module) {
+
+/**
+ * 弹窗
+ * @module Dialog
+ */
+
+'use strict';
+
+var Class = require('class'),
+  Dialog = require('./dialog');
+
+/**
+ * Alert
+ * @class Alert
+ * @extends Dialog
+ * @constructor
+ */
+var Alert = new Class(Dialog, {
+
+    id: 'Alert',
+
+    options: {
+      blocker: true,
+      closeHandler: 'submit',
+      buttons: {
+        submit: ['提交', function () {
+          this.close();
+        }]
+      }
+    }
+
+  });
+
+return Alert;
+
+
+});
