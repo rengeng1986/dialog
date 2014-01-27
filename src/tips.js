@@ -50,13 +50,11 @@ var Tips = new Class(Dialog, {
       timeout: 2,
       title: false,
       closeTrigger: false,
-      // draggable: false,
       on: {
         show: function () {
-          var that = this;
-          setTimeout(function () {
-            that.close();
-          }, that.opt.timeout * 1000);
+          setTimeout($.proxy(function () {
+            this.close();
+          }, this), this.opt.timeout * 1000);
         }
       }
     }

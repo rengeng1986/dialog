@@ -21,13 +21,13 @@ var Prompt = new Class(Dialog, {
     id: 'Prompt',
 
     content: function () {
-      var pWrap = $('<div/>', this.context.document),
-        tWrap = $('<div class="' + this.cls.propmtTitle + '"/>', this.context.document)
+      var pWrap = $('<div/>', this.doc),
+        tWrap = $('<div class="' + this.cls.propmtTitle + '"/>', this.doc)
             .text(this.opt.content).appendTo(pWrap),
-        cWrap = $('<div class="' + this.cls.propmtContent + '"/>', this.context.document)
+        cWrap = $('<div class="' + this.cls.propmtContent + '"/>', this.doc)
             .appendTo(pWrap);
 
-      this.els.textInput = $('<input type="text" class="' + this.cls.propmtInput + '"/>', this.context.document)
+      this.els.textInput = $('<input type="text" class="' + this.cls.propmtInput + '"/>', this.doc)
         .attr({
           tabIndex: -1
         })
@@ -35,7 +35,7 @@ var Prompt = new Class(Dialog, {
           if (e.keyCode === 9) {
             e.preventDefault();
           } else if (e.keyCode === 13) {
-            this.buttons.submit.trigger('click');
+            this.bts.submit.trigger('click');
           }
         }, this))
         .val(this.opt.defaultValue)
@@ -66,14 +66,20 @@ var Prompt = new Class(Dialog, {
       },
       closeHandler: 'cancel',
       buttons: {
-        submit: ['确定', function () {
-          this.result = this.els.textInput.val();
-          this.close();
-        }],
-        cancel: ['取消', function () {
-          this.result = null;
-          this.close();
-        }]
+        submit: {
+          title: '确定',
+          callback: function () {
+            this.result = this.els.textInput.val();
+            this.close();
+          }
+        },
+        cancel: {
+          title: '取消',
+          callback: function () {
+            this.result = null;
+            this.close();
+          }
+        }
       }
     }
 

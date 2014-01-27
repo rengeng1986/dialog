@@ -531,7 +531,7 @@ var Dialog = new Class({
       }
     }
 
-    this.clear($.proxy(function () {
+    this.clear(function () {
       if (!this.els) {
         return;
       }
@@ -540,12 +540,12 @@ var Dialog = new Class({
 
       var key;
       for (key in this) {
-        // if (Object.prototype.hasOwnProperty.call(this, key))
-        // this[key] = null;
-        delete this[key];
+        if (this.hasOwnProperty(key)) {
+          delete this[key];
+        }
       }
 
-    }, this));
+    });
   },
 
   /**

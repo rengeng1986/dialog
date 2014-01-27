@@ -24,9 +24,12 @@ var Alert = new Class(Dialog, {
       blocker: true,
       closeHandler: 'submit',
       buttons: {
-        submit: ['提交', function () {
-          this.close();
-        }]
+        submit: {
+          title: '提交',
+          callback: function () {
+            this.close();
+          }
+        }
       }
     }
 
