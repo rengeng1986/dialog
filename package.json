@@ -49,7 +49,7 @@
       "$": "$",
       "util": "crossjs/util/0.0.1/util",
       "class": "crossjs/class/0.0.5/class",
-      "locker": "crossjs/locker/0.0.1/locker",
+      "locker": "crossjs/locker/0.0.2/locker",
       "tempine": "crossjs/tempine/0.0.1/tempine"
     }
   }
