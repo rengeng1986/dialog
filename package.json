@@ -47,7 +47,7 @@
     "output": [ "alert.js", "confirm.js", "dialog.js", "prompt.js", "tips.js" ],
     "alias": {
       "$": "$",
-      "util": "crossjs/util/0.0.1/util",
+      "util": "crossjs/util/0.0.2/util",
       "class": "crossjs/class/0.0.5/class",
       "locker": "crossjs/locker/0.0.2/locker",
       "tempine": "crossjs/tempine/0.0.1/tempine"
