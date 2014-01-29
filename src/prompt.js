@@ -7,7 +7,8 @@ define(function (require, exports, module) {
 
 'use strict';
 
-var Class = require('class'),
+var $ = require('$'),
+  Class = require('class'),
   Dialog = require('./dialog');
 
 /**

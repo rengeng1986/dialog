@@ -12,7 +12,8 @@ define(function (require, exports, module) {
 //   throw new Error('The dialog widget is NOT campitable with the backcompat mode.');
 // }
 
-var Util = require('util'),
+var $ = require('$'),
+  Util = require('util'),
   Locker = require('locker'),
   Class = require('class'),
   Tempine = require('tempine');
@@ -23,7 +24,7 @@ var initIndex = 20000,
   instLocker = new Locker(),
 
   // 默认参数列表
-  defaultOptions = {
+  defaults = {
     // 对话框默认位置，可选值为`left|center|right|top|middle|bottom`的组合
     align: 'centermiddle',
     // 是否显示对话框
@@ -112,8 +113,9 @@ var Dialog = new Class({
   /**
    * 构造函数
    * @method __construct
+   * @param {mixture} options 参数
    */
-  __construct: function () {
+  __construct: function (options) {
 
     this.extend({
       bts: {},
@@ -122,23 +124,43 @@ var Dialog = new Class({
       visible: false
     });
 
-    this.opt = $.extend(true, {}, defaultOptions, this.options);
+    this.opt = $.extend(true, {}, defaults, this.options);
 
-    this.parseArgs.apply(this, arguments);
+    this.arg.apply(this, arguments);
+
+    // 事件订阅
+    if ($.isPlainObject(this.opt.on)) {
+      this.on(this.opt.on);
+    }
 
     this.ctx = this.opt.context;
     this.doc = this.ctx.document;
 
     this.cls = this.opt.classes;
 
-    // 事件订阅
-    if (!$.isEmptyObject(this.opt.on)) {
-      this.on(this.opt.on);
-      // 删除数据，避免多次订阅
-      // this.opt.on = null;
+    this.init();
+  },
+
+  /**
+   * 解析函数参数
+   * @method arg
+   * @private
+   */
+  arg: function () {
+    var args = Array.prototype.slice.call(arguments, 0),
+      arg0 = args.shift();
+
+    if (typeof arg0 === 'string') {
+      this.opt.content = arg0;
+    } else if ($.isPlainObject(arg0)) {
+      $.extend(true, this.opt, arg0);
     }
 
-    this.init();
+    if (args.length === 1 && typeof args[0] === 'function') {
+      this.opt.callback = args[0];
+    }
+
+    return this;
   },
 
   /**
@@ -647,28 +669,6 @@ var Dialog = new Class({
   },
 
   /**
-   * 解析函数参数
-   * @method parseArgs
-   * @private
-   */
-  parseArgs: function () {
-    var args = Array.prototype.slice.call(arguments, 0),
-      arg0 = args.shift();
-
-    if (typeof arg0 === 'string') {
-      this.opt.content = arg0;
-    } else if ($.isPlainObject(arg0)) {
-      $.extend(true, this.opt, arg0);
-    }
-
-    if (args.length === 1 && typeof args[0] === 'function') {
-      this.opt.callback = args[0];
-    }
-
-    return this;
-  },
-
-  /**
    * 显示窗体
    * @method show
    */
@@ -691,7 +691,7 @@ var Dialog = new Class({
 
   /**
    * 设置标题
-   * @param {mixed} title 标题
+   * @param {mixture} title 标题
    * @method title
    */
   title: function (title) {
@@ -709,80 +709,80 @@ var Dialog = new Class({
 
 });
 
-$.extend(Dialog, {
+// $.extend(Dialog, {
 
-  /**
-   * 设置默认参数
-   * @method setOptions
-   * @static
-   */
-  setOptions: function (obj) {
-    $.extend(true, defaultOptions, obj);
+//   /**
+//    * 设置默认参数
+//    * @method setOptions
+//    * @static
+//    */
+//   setOptions: function (obj) {
+//     $.extend(true, defaults, obj);
 
-    return Dialog;
-  },
+//     return Dialog;
+//   },
 
-  /**
-   * 根据id显示Dialog，若id未指定，则显示全部
-   * @method show
-   * @param {String} id Dialog的GUID
-   * @static
-   */
-  show: function (id) {
-    var obj = instLocker.get(id);
-    if (!obj) {
-      return;
-    }
-    if (obj instanceof Dialog) {
-      obj.show && obj.show();
-    } else {
-      $.each(obj, function (key, obj) {
-        obj && (obj instanceof Dialog) && obj.show && obj.show();
-      });
-    }
-  },
+//   /**
+//    * 根据id显示Dialog，若id未指定，则显示全部
+//    * @method show
+//    * @param {String} id Dialog的GUID
+//    * @static
+//    */
+//   show: function (id) {
+//     var obj = instLocker.get(id);
+//     if (!obj) {
+//       return;
+//     }
+//     if (obj instanceof Dialog) {
+//       obj.show && obj.show();
+//     } else {
+//       $.each(obj, function (key, obj) {
+//         obj && (obj instanceof Dialog) && obj.show && obj.show();
+//       });
+//     }
+//   },
 
-  /**
-   * 根据id隐藏Dialog，若id未指定，则隐藏全部
-   * @method hide
-   * @param {String} id Dialog的GUID
-   * @static
-   */
-  hide: function (id) {
-    var obj = instLocker.get(id);
-    if (!obj) {
-      return;
-    }
-    if (obj instanceof Dialog) {
-      obj.hide && obj.hide();
-    } else {
-      $.each(obj, function (key, obj) {
-        obj && (obj instanceof Dialog) && obj.hide && obj.hide();
-      });
-    }
-  },
+//   /**
+//    * 根据id隐藏Dialog，若id未指定，则隐藏全部
+//    * @method hide
+//    * @param {String} id Dialog的GUID
+//    * @static
+//    */
+//   hide: function (id) {
+//     var obj = instLocker.get(id);
+//     if (!obj) {
+//       return;
+//     }
+//     if (obj instanceof Dialog) {
+//       obj.hide && obj.hide();
+//     } else {
+//       $.each(obj, function (key, obj) {
+//         obj && (obj instanceof Dialog) && obj.hide && obj.hide();
+//       });
+//     }
+//   },
 
-  /**
-   * 根据id关闭Dialog，若id未指定，则关闭全部
-   * @method close
-   * @param {String} id Dialog的GUID
-   * @static
-   */
-  close: function (id) {
-    var obj = instLocker.get(id);
-    if (!obj) {
-      return;
-    }
-    if (obj instanceof Dialog) {
-      obj.close && obj.close();
-    } else {
-      $.each(obj, function (key, obj) {
-        obj && (obj instanceof Dialog) && obj.close && obj.close();
-      });
-    }
-  }
+//   /**
+//    * 根据id关闭Dialog，若id未指定，则关闭全部
+//    * @method close
+//    * @param {String} id Dialog的GUID
+//    * @static
+//    */
+//   close: function (id) {
+//     var obj = instLocker.get(id);
+//     if (!obj) {
+//       return;
+//     }
+//     if (obj instanceof Dialog) {
+//       obj.close && obj.close();
+//     } else {
+//       $.each(obj, function (key, obj) {
+//         obj && (obj instanceof Dialog) && obj.close && obj.close();
+//       });
+//     }
+//   }
 
-});
+// });
 
 return Dialog;
 

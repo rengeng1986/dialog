@@ -7,7 +7,7 @@ define(function (require, exports, module) {
 
 'use strict';
 
-var Util = require('util'),
+var $ = require('$'),
   Class = require('class'),
   Dialog = require('./dialog');
 
@@ -19,7 +19,7 @@ var Util = require('util'),
  */
 var Tips = new Class(Dialog, {
 
-    parseArgs: function () {
+    arg: function () {
       var args = Array.prototype.slice.call(arguments, 0),
         arg0 = args.shift();
 
