@@ -6,26 +6,58 @@ define(function (require, exports) {
 
   QUnit.start();
 
-  module('Module Confirm');
-  test('new Confirm(text string)', function() {
-    var dialog = new Confirm('text string');
-    equal( dialog.els.dialogBody.text(), 'text string', '' );
-    dialog.close();
-  });
-  test('new Confirm(html string)', function() {
-    var dialog = new Confirm('<i>text string</i>');
-    equal( dialog.els.dialogBody.text(), 'text string', '' );
-    equal( dialog.els.dialogBody.html(), '<i>text string</i>', '' );
-    dialog.close();
-  });
-
   module('Module Button');
-  asyncTest('new Confirm(text string)', function() {
-    var dialog = new Confirm('text string');
-    dialog.close();
+  asyncTest('new Confirm()', function() {
+    var dialog = new Confirm({
+      content: 'text string',
+      callback: function () {
+        return this.result === false;
+      },
+      on: {
+        'submit': function () {
+          idx1++;
+          idx2++;
+        },
+        'cancel': function () {
+          idx2++;
+        },
+        'close': function () {
+          idx2++;
+        }
+      }
+    }), idx1 = 0, idx2 = 0;
+    dialog.bts['submit'].trigger('click');
     setTimeout(function () {
-      equal( typeof dialog.els, 'undefined', '' );
-      equal( typeof dialog.close, 'function', '' );
+      dialog.close();
+      equal( idx1, 1, '' );
+      equal( idx2, 1, '' );
+      start();
+    }, 1000);
+  });
+  asyncTest('new Confirm()', function() {
+    var dialog = new Confirm({
+      content: 'text string',
+      callback: function () {
+        return this.result === false;
+      },
+      on: {
+        'submit': function () {
+          idx1++;
+          idx2++;
+        },
+        'cancel': function () {
+          idx2++;
+        },
+        'close': function () {
+          idx2++;
+        }
+      }
+    }), idx1 = 0, idx2 = 0;
+    dialog.bts['cancel'].trigger('click');
+    setTimeout(function () {
+      dialog.close();
+      equal( idx1, 0, '' );
+      equal( idx2, 2, '' );
       start();
     }, 1000);
   });

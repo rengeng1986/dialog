@@ -19,9 +19,10 @@ var $ = require('$'),
   Tempine = require('tempine');
 
 
-var initIndex = 20000,
+var nextHighestIndex = 1000,
 
-  instLocker = new Locker(),
+  // 存储对话框实例
+  instanceLocker = new Locker(),
 
   // 默认参数列表
   defaults = {
@@ -35,23 +36,8 @@ var initIndex = 20000,
     buttons: {},
     // 关闭回调，在关闭生效前执行
     // callback: function () {},
-    // 对话框元素样式
-    classes: {
-      // 遮罩层
-      'blocker':          'ui-blocker',
-      'blockerIn':        'ui-blocker-in',
-
-      // 对话框元素
-      'dialog':           'ui-dialog',
-      'dialogHead':       'ui-dialog-hd',
-      'dialogBody':       'ui-dialog-bd',
-      'dialogFoot':       'ui-dialog-ft',
-      'dialogBtn':        'ui-dialog-btn',
-      'dialogClose':      'ui-dialog-close',
-      'dialogActive':     'ui-dialog-active',
-      'dialogTitle':      'ui-dialog-title',
-      'dialogTitless':    'ui-dialog-titless'
-    },
+    // 样式前缀
+    classPrefix: 'ui-dialog',
     // 是否显示关闭按钮
     closeTrigger: true,
     // 关闭按钮回调函数，值为String时，自动寻找对应的button，参见`./confirm.js`
@@ -60,7 +46,7 @@ var initIndex = 20000,
     // container: '',
     // 对话框内容，支持HTML、DOM、JQ对象
     // content: '',
-    // 上下文，默认为当前window
+    // 上下文，默认为当前window，提供此接口用于跨window操作
     context: window,
     // 对话框显示隐藏时的动画效果
     effects: {
@@ -79,6 +65,8 @@ var initIndex = 20000,
       y: 0
     },
     on: {},
+    // 原点位置
+    orig: {},
     position: 'fixed',
     reverseButtons: false,
     // 动画速度（用于遮罩层与对话框）
@@ -86,15 +74,14 @@ var initIndex = 20000,
     // 是否固定位置（窗口大小变化时会重新计算位置）
     sticky: false,
     // 对话框模板
-    template: '<div class="{{dialog}}">' +
-        // '<div class="{{dialogIn}}">' +
-            '<div class="{{dialogHead}}">' +
-              '<a class="{{dialogClose}}" href="javascript:">&times;</a>' +
-              '<div class="{{dialogTitle}}"></div>' +
-            '</div>' +
-            '<div class="{{dialogBody}}"></div>' +
-            '<div class="{{dialogFoot}}"></div>' +
-        // '</div>' +
+    template: '<div class="{{classPrefix}}">' +
+          '<a class="{{classPrefix}}-close" href="javascript:">&times;</a>' +
+          '<div class="{{classPrefix}}-loading"></div>' +
+          '<div class="{{classPrefix}}-head">' +
+            '<div class="{{classPrefix}}-title"></div>' +
+          '</div>' +
+          '<div class="{{classPrefix}}-body"></div>' +
+          '<div class="{{classPrefix}}-foot"></div>' +
         '</div>',
     title: '&nbsp;'
     // width: ''
@@ -113,20 +100,15 @@ var Dialog = new Class({
   /**
    * 构造函数
    * @method __construct
-   * @param {mixture} options 参数
+   * @param {Object} options 参数
    */
   __construct: function (options) {
 
     this.extend({
       bts: {},
-      els: {},
-      guid: '',
+      opt: $.extend(true, {}, defaults, this.options, options),
       visible: false
     });
-
-    this.opt = $.extend(true, {}, defaults, this.options);
-
-    this.arg.apply(this, arguments);
 
     // 事件订阅
     if ($.isPlainObject(this.opt.on)) {
@@ -136,31 +118,16 @@ var Dialog = new Class({
     this.ctx = this.opt.context;
     this.doc = this.ctx.document;
 
-    this.cls = this.opt.classes;
-
     this.init();
   },
 
   /**
-   * 解析函数参数
-   * @method arg
+   * 获取className
+   * @method getClassName
    * @private
    */
-  arg: function () {
-    var args = Array.prototype.slice.call(arguments, 0),
-      arg0 = args.shift();
-
-    if (typeof arg0 === 'string') {
-      this.opt.content = arg0;
-    } else if ($.isPlainObject(arg0)) {
-      $.extend(true, this.opt, arg0);
-    }
-
-    if (args.length === 1 && typeof args[0] === 'function') {
-      this.opt.callback = args[0];
-    }
-
-    return this;
+  getClassName: function (name) {
+    return this.opt.classPrefix + '-' + name;
   },
 
   /**
@@ -168,60 +135,60 @@ var Dialog = new Class({
    * @method init
    */
   init: function () {
-    var inst, dialog;
+    var instance, dialog;
 
     this.guid = this.opt.id || this.id;
 
     // 如果在仓库中找到同一ID的实例，则先进行清理
-    if (this.guid && (inst = instLocker.get(this.guid))) {
-      inst.clear();
+    if (this.guid && (instance = instanceLocker.get(this.guid))) {
+      instance.clear();
     }
 
     // 确保唯一ID
-    this.guid = this.guid || Util.nuid();
-    instLocker.set(this.guid, this);
+    this.guid || (this.guid = Util.nuid());
+    instanceLocker.set(this.guid, this);
 
     // dialog elements
-    dialog = $(new Tempine(this.opt.template).render(this.cls), this.doc)
+    dialog = $(new Tempine(this.opt.template).render({
+          classPrefix: this.opt.classPrefix
+        }), this.doc)
         .attr({
           tabIndex: -1
         })
         .css({
           position: this.opt.position,
-          zIndex: ++initIndex,
+          zIndex: ++nextHighestIndex,
           visibility: 'hidden'
         })
         .on('mousedown', $.proxy(this.focus, this));
 
-    $.extend(this.els, {
+    this.extend({
       dialog:         dialog,
-      dialogHead:     dialog.find('.' + this.cls.dialogHead),
-      dialogBody:     dialog.find('.' + this.cls.dialogBody),
-      dialogFoot:     dialog.find('.' + this.cls.dialogFoot),
-      dialogTitle:    dialog.find('.' + this.cls.dialogTitle),
-      dialogClose:    dialog.find('.' + this.cls.dialogClose)
+      dialogLoading:  dialog.find('.' + this.getClassName('loading')),
+      dialogHead:     dialog.find('.' + this.getClassName('head')),
+      dialogBody:     dialog.find('.' + this.getClassName('body')),
+      dialogFoot:     dialog.find('.' + this.getClassName('foot')),
+      dialogTitle:    dialog.find('.' + this.getClassName('title')),
+      dialogClose:    dialog.find('.' + this.getClassName('close'))
     });
 
     // header
-    this.els.dialogHead
+    this.dialogHead
       .on('mousedown.a.' + this.guid, $.proxy(function (e) {
-        this.els.dialog.addClass(this.cls.dialogActive);
+        this.dialog.addClass(this.getClassName('active'));
 
         $(this.doc)
         .on('mouseup.a.' + this.guid, $.proxy(function () {
           $(this.doc).off('mouseup.a.' + this.guid);
-          if (this.els.dialog) {
-            this.els.dialog.removeClass(this.cls.dialogActive);
+          if (this.dialog) {
+            this.dialog.removeClass(this.getClassName('active'));
           }
         }, this));
       }, this));
 
     // close trigger
     if (this.opt.closeTrigger) {
-      this.els.dialogClose
-        .attr({
-          hideFocus: true
-        })
+      this.dialogClose
         .on('mousedown', function (e) {
           e.stopPropagation();
         })
@@ -236,50 +203,52 @@ var Dialog = new Class({
           }
         }, this));
 
-      this.els.dialog
+      this.dialog
         .on('keydown.' + this.guid, $.proxy(function (e) {
           // escape
           if (e.keyCode === 27) {
-            this.els.dialogClose.trigger('click');
+            this.dialogClose.trigger('click');
           }
         }, this));
     } else {
-      this.els.dialogClose.hide();
+      this.dialogClose.hide();
     }
 
+    // title, buttons, content
     this.title(this.opt.title)
       .buttons(this.opt.buttons)
       .content(this.opt.content);
 
-    // 按钮事件订阅（不能先于按钮初始化）
-    // this.on(this.cbs);
-
     dialog.appendTo(this.opt.container || this.doc.body);
 
     // align
+    var align = this.opt.align,
+      orig = this.opt.orig;
+
     $.each(['left', 'center', 'right'], $.proxy(function (i, n) {
-      if (this.opt.align.indexOf(n) !== -1) {
-        this.origX = i / 2;
+      if (align.indexOf(n) !== -1) {
+        orig.x = i / 2;
         return false;
       }
     }, this));
 
     $.each(['top', 'middle', 'bottom'], $.proxy(function (i, n) {
-      if (this.opt.align.indexOf(n) !== -1) {
-        this.origY = i / 2;
+      if (align.indexOf(n) !== -1) {
+        orig.y = i / 2;
         return false;
       }
     }, this));
 
+    // width
     if (this.opt.width) {
-      this.els.dialog.css({
+      this.dialog.css({
         width: this.opt.width
       });
     }
 
     this.locate();
 
-    this.els.dialog.css({
+    this.dialog.css({
       visibility: 'visible',
       display: 'none'
     });
@@ -299,7 +268,7 @@ var Dialog = new Class({
 
   /**
    * 生成遮罩层，模拟模态窗口
-   * @param {boolean} blocker 是否显示遮罩
+   * @param {boolean} blocker 显示或隐藏遮罩
    * @method blocker
    */
   blocker: function (blocker) {
@@ -310,38 +279,44 @@ var Dialog = new Class({
     if (blocker) {
 
       css = {
-        display: 'none'
+        display: 'none',
+        position: this.opt.position
       };
 
-      dialog = this.els.dialog;
+      dialog = this.dialog;
 
       if (css.position === 'absolute') {
         css.width = this.doc.body.scrollWidth;
         css.height = this.doc.body.scrollHeight;
       }
 
-      dialogBlocker = $('<div class="' + this.cls.blocker + '"/>', this.doc)
+      dialogBlocker = $('<div class="' + this.getClassName('blocker') + '"/>', this.doc)
         .css(css)
         .attr({
           tabIndex: -1
         })
         .on('mousedown', $.proxy(function () {
-          var css, dur;
-          if (this.els.dialog.queue().length === 0) {
-            css = [{'margin-left': '-=10'},
-              {'margin-left': '+=20'},
-              {'margin-left': '-=20'}];
-            dur = [50, 100, 50];
-            // shake
-            this.els.dialog
-              .animate(css[0], dur[0])
-              .animate(css[1], dur[1])
-              .animate(css[2], dur[2])
-              .animate(css[1], dur[1])
-              .animate(css[0], dur[0]);
-          }
-        }, this))
-        .append('<div class="' + this.cls.blockerIn + '"/>');
+          var dialog = this.dialog,
+            mleft = parseInt(dialog.css('marginLeft'), 10) || 0,
+            anims = [
+                [-10, 50],
+                [20, 100],
+                [-20, 50],
+                [20, 100],
+                [-10, 50]
+              ],
+            executor = function () {
+              var anim = anims.shift();
+              if (anim) {
+                dialog.animate({
+                  marginLeft: mleft + anim[0]
+                }, anim[1]);
+                setTimeout(executor, anim[1]);
+              }
+            };
+          // shake
+          executor();
+        }, this));
 
       if (this.opt.closeTrigger) {
 
@@ -349,15 +324,15 @@ var Dialog = new Class({
           .on('keydown.' + this.guid, $.proxy(function (e) {
             // escape
             if (e.keyCode === 27) {
-              this.els.dialogClose.trigger('click');
+              this.dialogClose.trigger('click');
             }
           }, this));
       }
 
-      this.els.dialogBlocker = dialogBlocker.prependTo(this.opt.container || this.doc.body);
+      this.dialogBlocker = dialogBlocker.prependTo(this.opt.container || this.doc.body);
 
     } else {
-      this.els.dialogBlocker && this.els.dialogBlocker.hide();
+      this.dialogBlocker && this.dialogBlocker.hide();
     }
 
     return this;
@@ -368,7 +343,7 @@ var Dialog = new Class({
    * @example
    * ```
    * this.buttons({
-   *   // `＜a class="ui-dialog-btn ui-dialog-btn-submit" ...＞Submit＜/a＞`
+   *   // `＜a class="ui-dialog-button ui-dialog-button-submit"...＞Submit＜/a＞`
    *   'submit': {
    *     title: 'Submit',
    *     callback: function () {
@@ -376,7 +351,7 @@ var Dialog = new Class({
    *       this.close();
    *     }
    *   },
-   *   // `＜a class="ui-dialog-btn ui-dialog-btn-cancel" ...＞Cancel＜/a＞`
+   *   // `＜a class="ui-dialog-button ui-dialog-button-cancel"...＞Cancel＜/a＞`
    *   'cancel': {
    *     title: 'Cancel',
    *     callback: function () {
@@ -384,7 +359,7 @@ var Dialog = new Class({
    *       this.close();
    *     }
    *   },
-   *   // `＜a class="ui-dialog-btn ui-dialog-btn-ignore" ...＞Ignore＜/a＞`
+   *   // `＜a class="ui-dialog-button ui-dialog-button-ignore"...＞Ignore＜/a＞`
    *   'ignore': {
    *     title: 'Ignore',
    *     callback: function () {
@@ -394,15 +369,17 @@ var Dialog = new Class({
    *   }
    * });
    * ```
-   * @param {Object} buttons 按钮组
    * @method buttons
+   * @param {Object} buttons 按钮组
    */
   buttons: function (buttons) {
-    if (buttons && !$.isEmptyObject(buttons)) {
+    var buttonClassPrefix;
+    if (buttons) {
+      buttonClassPrefix = this.getClassName('button');
       $.each(buttons, $.proxy(function (name, params) {
         var btn = $('<a class="' +
-            this.cls.dialogBtn + ' ' +
-            this.cls.dialogBtn + '-' +
+            buttonClassPrefix + ' ' +
+            buttonClassPrefix + '-' +
             name.toLowerCase() + '" href="javascript:"/>', this.doc)
           .text(params.title || name)
           .on('click', $.proxy(function () {
@@ -418,7 +395,7 @@ var Dialog = new Class({
         }
 
         this.bts[name] =
-            btn[this.opt.reverseButtons ? 'prependTo' : 'appendTo'](this.els.dialogFoot);
+            btn[this.opt.reverseButtons ? 'prependTo' : 'appendTo'](this.dialogFoot);
       }, this));
 
     }
@@ -427,74 +404,55 @@ var Dialog = new Class({
   },
 
   /**
-   * 显示按钮的”加载中“
-   * @param {String} name 按钮名称
-   * @param {String} [text] 显示的字符
-   * @method showLoading
+   * 显示加载中遮罩层
+   * @param {Boolean} [show] 是否显示（默认为`TRUE`）
+   * @method loading
    */
-  showLoading: function (name, text) {
-    var btn = this.bts[name || 'submit'];
-    if (btn) {
-      btn.data('toggle-loading', btn.text())
-        .prop('disabled', true)
-        .text(text || '加载中');
-    }
+  loading: function (show) {
+    this.dialogLoading.toggle(show !== false);
   },
 
-  /**
-   * 复位”加载中“的按钮
-   * @param {String} name 按钮名称
-   * @method hideLoading
-   */
-  hideLoading: function (name) {
-    var btn = this.bts[name || 'submit'];
-    if (btn) {
-      btn.text(btn.data('toggle-loading'))
-        .prop('disabled', false);
-    }
-  },
+  // /**
+  //  * 显示按钮
+  //  * @method showButton
+  //  */
+  // showButton: function (name) {
+  //   var n = arguments.length,
+  //     btn;
+  //   if (n) {
+  //     for (; n >= 0; n--) {
+  //       btn = this.bts[arguments[n]];
+  //       if (btn) {
+  //         btn.show();
+  //       }
+  //     }
+  //   } else {
+  //     this.bts.each(function () {
+  //       $(this).show();
+  //     });
+  //   }
+  // },
 
-  /**
-   * 显示按钮
-   * @method showButton
-   */
-  showButton: function (name) {
-    var n = arguments.length,
-      btn;
-    if (n) {
-      for (; n >= 0; n--) {
-        btn = this.bts[arguments[n]];
-        if (btn) {
-          btn.show();
-        }
-      }
-    } else {
-      this.bts.each(function () {
-        $(this).show();
-      });
-    }
-  },
-
-  /**
-   * 隐藏按钮
-   * @method hideButton
-   */
-  hideButton: function () {
-    var n = arguments.length,
-      btn;
-    if (n) {
-      for (; n >= 0; n--) {
-        btn = this.bts[arguments[n]];
-        if (btn) {
-          btn.hide();
-        }
-      }
-    } else {
-      this.bts.each(function () {
-        $(this).hide();
-      });
-    }
-  },
+  // /**
+  //  * 隐藏按钮
+  //  * @method hideButton
+  //  */
+  // hideButton: function () {
+  //   var n = arguments.length,
+  //     btn;
+  //   if (n) {
+  //     for (; n >= 0; n--) {
+  //       btn = this.bts[arguments[n]];
+  //       if (btn) {
+  //         btn.hide();
+  //       }
+  //     }
+  //   } else {
+  //     this.bts.each(function () {
+  //       $(this).hide();
+  //     });
+  //   }
+  // },
 
   /**
    * 清理当前实例
@@ -502,27 +460,27 @@ var Dialog = new Class({
    * @method clear
    */
   clear: function (callback) {
-    var f;
+    var clear;
 
-    if (!this.els) {
+    if (!this.dialog) {
       return;
     }
 
     // clear bindings
     $([this.ctx, this.doc, this.doc.body,
-      this.els.dialog, this.els.dialogHead])
+      this.dialog, this.dialogHead])
         .off('.' + this.guid);
 
-    f = function () {
-      if (this.els) {
-        this.els.dialog.remove();
+    clear = function () {
+      if (this.dialog) {
+        this.dialog.remove();
 
-        if (this.els.dialogBlocker) {
-          this.els.dialogBlocker.remove();
+        if (this.dialogBlocker) {
+          this.dialogBlocker.remove();
         }
       }
 
-      instLocker.remove(this.guid);
+      instanceLocker.remove(this.guid);
 
       if (typeof callback === 'function') {
         callback.call(this);
@@ -530,9 +488,9 @@ var Dialog = new Class({
     };
 
     if (typeof callback === 'function') {
-      this.hide($.proxy(f, this));
+      this.hide($.proxy(clear, this));
     } else {
-      f.call(this);
+      clear.call(this);
     }
   },
 
@@ -541,8 +499,8 @@ var Dialog = new Class({
    * 首先执行全局回调函数`opt.callback`，如返回值为`false`，则终止执行
    * @method close
    */
-  close: function (force) {
-    if (!this.els) {
+  close: function () {
+    if (!this.dialog) {
       return;
     }
 
@@ -554,7 +512,7 @@ var Dialog = new Class({
     }
 
     this.clear(function () {
-      if (!this.els) {
+      if (!this.dialog) {
         return;
       }
 
@@ -573,21 +531,12 @@ var Dialog = new Class({
   /**
    * 设置内容
    * @method content
-   * @param {mixed} content 内容
+   * @param {Mixture} content 内容
    */
   content: function (content) {
-    this.els.dialogBody.empty().append(content);
+    this.dialogBody.empty().append(content);
 
     return this;
-  },
-
-  /**
-   * 在dialogBody内的元素里查找
-   * @method find
-   * @param {String} selector 选择符
-   */
-  find: function (selector) {
-    return this.els.dialogBody.find(selector);
   },
 
   /**
@@ -595,33 +544,37 @@ var Dialog = new Class({
    * @method focus
    */
   focus: function () {
-    if (!this.els) {
+    if (!this.dialog) {
       return;
     }
 
-    if (this.opt.zIndex < initIndex) {
-      this.opt.zIndex = ++initIndex;
-      this.els.dialog.css({
-        zIndex: initIndex
+    if (this.opt.zIndex < nextHighestIndex) {
+      this.opt.zIndex = ++nextHighestIndex;
+      this.dialog.css({
+        zIndex: nextHighestIndex
       });
     }
 
-    // this.els.dialog.focus();
+    // this.dialog.focus();
 
     this.fire('focus');
   },
 
   /**
    * 隐藏窗体
-   * @param {Function} [callback] 回调函数
    * @method hide
+   * @param {Function} [callback] 回调函数
    */
   hide: function (callback) {
-    if (!this.els) {
+    if (!this.dialog) {
       return;
     }
 
-    this.opt.effects.hide.call(this, this.els.dialog, this.opt.speed, callback);
+    if (this.dialogBlocker) {
+      this.dialogBlocker.fadeOut(this.opt.speed);
+    }
+
+    this.opt.effects.hide.call(this, this.dialog, this.opt.speed, callback);
     this.visible = false;
 
     this.fire('hide');
@@ -630,38 +583,41 @@ var Dialog = new Class({
   /**
    * 设定窗体位置
    * @method locate
+   * @private
    */
   locate: function () {
-    var rs = $.proxy(function () {
+    var locate = $.proxy(function () {
 
-      var left = ($(this.ctx).width() - this.els.dialog.outerWidth(true)) *
-            this.origX +
+      var dialog = this.dialog,
+
+        left = ($(this.ctx).width() - dialog.width()) *
+            this.opt.orig.x +
             (this.opt.position === 'fixed' ? 0 : $(this.ctx).scrollLeft()) +
             this.opt.offset.x,
-        top = ($(this.ctx).height() - this.els.dialog.outerHeight(true)) *
-            this.origY +
+        top = ($(this.ctx).height() - dialog.height()) *
+            this.opt.orig.y +
             (this.opt.position === 'fixed' ? 0 : $(this.ctx).scrollTop()) +
             this.opt.offset.y;
 
-      this.els.dialog.stop().animate({
+      dialog.animate({
           left: Math.max(left, 0),
           top: Math.max(top, 0)
         }, 50);
 
     }, this);
 
-    rs();
+    locate();
 
     // 固定位置
     if (this.opt.sticky) {
 
       $(this.ctx)
         .off('.l.' + this.guid)
-        .on('resize.l.' + this.guid + ' scroll.l.' + this.guid, rs);
+        .on('resize.l.' + this.guid + ' scroll.l.' + this.guid, locate);
 
     } else {
 
-      rs = null;
+      locate = null;
 
     }
 
@@ -673,16 +629,16 @@ var Dialog = new Class({
    * @method show
    */
   show: function () {
-    if (!this.els) {
+    if (!this.dialog) {
       return;
     }
 
-    if (this.els.dialogBlocker) {
-      this.els.dialogBlocker.fadeIn(this.opt.speed);
+    if (this.dialogBlocker) {
+      this.dialogBlocker.fadeIn(this.opt.speed);
     }
 
     this.visible = true;
-    this.opt.effects.show.call(this, this.els.dialog, this.opt.speed);
+    this.opt.effects.show.call(this, this.dialog, this.opt.speed);
 
     this.fire('show');
 
@@ -691,98 +647,23 @@ var Dialog = new Class({
 
   /**
    * 设置标题
-   * @param {mixture} title 标题
    * @method title
+   * @param {Mixture} title 标题
    */
   title: function (title) {
 
     if (title === false) {
-      this.els.dialog.addClass(this.cls.dialogTitless);
-      this.els.dialogTitle.hide().empty();
+      this.dialog.addClass(this.getClassName('notitle'));
+      this.dialogTitle.hide().empty();
     } else {
-      this.els.dialog.removeClass(this.cls.dialogTitless);
-      this.els.dialogTitle.html(title).show();
+      this.dialog.removeClass(this.getClassName('notitle'));
+      this.dialogTitle.html(title).show();
     }
 
     return this;
   }
 
 });
-
-// $.extend(Dialog, {
-
-//   /**
-//    * 设置默认参数
-//    * @method setOptions
-//    * @static
-//    */
-//   setOptions: function (obj) {
-//     $.extend(true, defaults, obj);
-
-//     return Dialog;
-//   },
-
-//   /**
-//    * 根据id显示Dialog，若id未指定，则显示全部
-//    * @method show
-//    * @param {String} id Dialog的GUID
-//    * @static
-//    */
-//   show: function (id) {
-//     var obj = instLocker.get(id);
-//     if (!obj) {
-//       return;
-//     }
-//     if (obj instanceof Dialog) {
-//       obj.show && obj.show();
-//     } else {
-//       $.each(obj, function (key, obj) {
-//         obj && (obj instanceof Dialog) && obj.show && obj.show();
-//       });
-//     }
-//   },
-
-//   /**
-//    * 根据id隐藏Dialog，若id未指定，则隐藏全部
-//    * @method hide
-//    * @param {String} id Dialog的GUID
-//    * @static
-//    */
-//   hide: function (id) {
-//     var obj = instLocker.get(id);
-//     if (!obj) {
-//       return;
-//     }
-//     if (obj instanceof Dialog) {
-//       obj.hide && obj.hide();
-//     } else {
-//       $.each(obj, function (key, obj) {
-//         obj && (obj instanceof Dialog) && obj.hide && obj.hide();
-//       });
-//     }
-//   },
-
-//   /**
-//    * 根据id关闭Dialog，若id未指定，则关闭全部
-//    * @method close
-//    * @param {String} id Dialog的GUID
-//    * @static
-//    */
-//   close: function (id) {
-//     var obj = instLocker.get(id);
-//     if (!obj) {
-//       return;
-//     }
-//     if (obj instanceof Dialog) {
-//       obj.close && obj.close();
-//     } else {
-//       $.each(obj, function (key, obj) {
-//         obj && (obj instanceof Dialog) && obj.close && obj.close();
-//       });
-//     }
-//   }
-
-// });
 
 return Dialog;
 

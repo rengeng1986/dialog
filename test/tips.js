@@ -8,12 +8,14 @@ define(function (require, exports) {
 
   module('Module Tips');
   asyncTest('new Tips()', function() {
-    var dialog = new Tips('hello world.');
+    var dialog = new Tips({
+      content: 'hello world.'
+    });
     setTimeout(function () {
-      equal( typeof dialog.els, 'undefined', '' );
+      equal( typeof dialog.dialog, 'undefined', '' );
       start();
     }, 3000);
-    equal( typeof dialog.els, 'object', '' );
+    equal( typeof dialog.dialog, 'object', '' );
   });
 
 });

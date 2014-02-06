@@ -23,12 +23,12 @@ var Prompt = new Class(Dialog, {
 
     content: function () {
       var pWrap = $('<div/>', this.doc),
-        tWrap = $('<div class="' + this.cls.propmtTitle + '"/>', this.doc)
+        tWrap = $('<div class="' + this.getClassName('prompt-title') + '"/>', this.doc)
             .text(this.opt.content).appendTo(pWrap),
-        cWrap = $('<div class="' + this.cls.propmtContent + '"/>', this.doc)
+        cWrap = $('<div class="' + this.getClassName('prompt-content') + '"/>', this.doc)
             .appendTo(pWrap);
 
-      this.els.textInput = $('<input type="text" class="' + this.cls.propmtInput + '"/>', this.doc)
+      this.textInput = $('<input type="text" class="' + this.getClassName('prompt-input') + '"/>', this.doc)
         .attr({
           tabIndex: -1
         })
@@ -44,7 +44,7 @@ var Prompt = new Class(Dialog, {
 
       this.opt.content = pWrap.children();
 
-      this.els.dialogBody.empty().append(this.opt.content);
+      this.dialogBody.empty().append(this.opt.content);
 
       pWrap.remove();
       pWrap = null;
@@ -55,14 +55,9 @@ var Prompt = new Class(Dialog, {
     options: {
       defaultValue: '',
       blocker: true,
-      classes: {
-        'propmtTitle':    'ui-prompt-title',
-        'propmtContent':  'ui-prompt-content',
-        'propmtInput':    'ui-prompt-input'
-      },
       on: {
         focus: function () {
-          this.els.textInput.focus();
+          this.textInput.focus();
         }
       },
       closeHandler: 'cancel',
@@ -70,7 +65,7 @@ var Prompt = new Class(Dialog, {
         submit: {
           title: '确定',
           callback: function () {
-            this.result = this.els.textInput.val();
+            this.result = this.textInput.val();
             this.close();
           }
         },
