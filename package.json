@@ -1,6 +1,6 @@
 {
   "name": "dialog",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "description": "alert, confirm, dialog, prompt, tips",
   "keywords": [ "dialog", "seajs", "modules" ],
   "homepage": "https://github.com/crossjs/dialog",

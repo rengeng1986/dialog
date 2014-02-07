@@ -157,7 +157,7 @@ var Dialog = new Class({
         })
         .css({
           position: this.opt.position,
-          zIndex: ++nextHighestIndex,
+          zIndex: (this.opt.zIndex = ++nextHighestIndex),
           visibility: 'hidden'
         })
         .on('mousedown', $.proxy(this.focus, this));
@@ -280,7 +280,8 @@ var Dialog = new Class({
 
       css = {
         display: 'none',
-        position: this.opt.position
+        position: this.opt.position,
+        zIndex: this.opt.zIndex
       };
 
       dialog = this.dialog;
