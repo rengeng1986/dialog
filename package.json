@@ -1,6 +1,6 @@
 {
   "name": "dialog",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "alert, confirm, dialog, prompt, tips",
   "keywords": [ "dialog", "seajs", "modules" ],
   "homepage": "https://github.com/crossjs/dialog",
@@ -50,7 +50,7 @@
       "util": "crossjs/util/0.0.3/util",
       "class": "crossjs/class/0.0.5/class",
       "locker": "crossjs/locker/0.0.2/locker",
-      "tempine": "crossjs/tempine/0.0.1/tempine"
+      "tempine": "crossjs/tempine/0.0.2/tempine"
     }
   }
 }
