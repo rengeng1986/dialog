@@ -27,7 +27,7 @@ var Alert = new Class(Dialog, {
         submit: {
           title: '提交',
           callback: function () {
-            this.close();
+            this.close(this.opt.callback);
           }
         }
       }

@@ -28,14 +28,14 @@ var Confirm = new Class(Dialog, {
           title: '确定',
           callback: function () {
             this.result = true;
-            this.close();
+            this.close(this.opt.callback);
           }
         },
         cancel: {
           title: '取消',
           callback: function () {
             this.result = false;
-            this.close();
+            this.close(this.opt.callback);
           }
         }
       }

@@ -26,7 +26,7 @@ var Tips = new Class(Dialog, {
       on: {
         show: function () {
           setTimeout($.proxy(function () {
-            this.close();
+            this.close(this.opt.callback);
           }, this), this.opt.timeout * 1000);
         }
       }

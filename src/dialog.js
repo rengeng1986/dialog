@@ -498,16 +498,17 @@ var Dialog = new Class({
   /**
    * 关闭窗体
    * 首先执行全局回调函数`opt.callback`，如返回值为`false`，则终止执行
+   * @param {Function} [callback] 全局回调函数
    * @method close
    */
-  close: function () {
+  close: function (callback) {
     if (!this.dialog) {
       return;
     }
 
-    if (typeof this.opt.callback === 'function') {
+    if (typeof callback === 'function') {
       // 执行全局回调函数，如返回值为`false`，则终止执行
-      if (this.opt.callback.call(this) === false) {
+      if (callback.call(this) === false) {
         return;
       }
     }

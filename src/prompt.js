@@ -66,14 +66,14 @@ var Prompt = new Class(Dialog, {
           title: '确定',
           callback: function () {
             this.result = this.textInput.val();
-            this.close();
+            this.close(this.opt.callback);
           }
         },
         cancel: {
           title: '取消',
           callback: function () {
             this.result = null;
-            this.close();
+            this.close(this.opt.callback);
           }
         }
       }
