@@ -7,85 +7,22 @@ define(function (require, exports, module) {
 
 'use strict';
 
-// 此判断有过度设计之嫌疑，注释掉先
-// if (document.compatMode === 'BackCompat') {
-//   throw new Error('The dialog widget is NOT campitable with the backcompat mode.');
-// }
-
 var $ = require('$'),
   Util = require('util'),
   Locker = require('locker'),
   Class = require('class'),
-  Tempine = require('tempine');
+  Tempine = require('tempine'),
 
+  // 全局默认参数
+  defaults = require('./defaults');
 
-var nextHighestIndex = 1000,
+var
+
+  // 初始z-index值
+  zIndex = 1000,
 
   // 存储对话框实例
-  instanceLocker = new Locker(),
-
-  // 默认参数列表
-  defaults = {
-    // 对话框默认位置，可选值为`left|center|right|top|middle|bottom`的组合
-    align: 'centermiddle',
-    // 是否显示对话框
-    visible: true,
-    // 是否模拟为模态窗口
-    blocker: false,
-    // 按钮组
-    buttons: {},
-    // 关闭回调，在关闭生效前执行
-    // callback: function () {},
-    // 样式前缀
-    classPrefix: 'ui-dialog',
-    // 是否显示关闭按钮
-    closeTrigger: true,
-    // 关闭按钮回调函数，值为String时，自动寻找对应的button，参见`./confirm.js`
-    closeHandler: function () { this.close(); },
-    // 附加对话框的节点对象
-    // container: '',
-    // 对话框内容，支持HTML、DOM、JQ对象
-    // content: '',
-    // 上下文，默认为当前window，提供此接口用于跨window操作
-    context: window,
-    // 对话框显示隐藏时的动画效果
-    effects: {
-      show: function (element, speed, callback) {
-        element.fadeIn(speed, callback);
-      },
-      hide: function (element, speed, callback) {
-        element.fadeOut(speed, callback);
-      }
-    },
-    // 对话框
-    // id: '',
-    offset: {
-      // 对话框相对于中间位置的位移
-      x: 0,
-      y: 0
-    },
-    on: {},
-    // 原点位置
-    orig: {},
-    position: 'fixed',
-    reverseButtons: false,
-    // 动画速度（用于遮罩层与对话框）
-    speed: 200,
-    // 是否固定位置（窗口大小变化时会重新计算位置）
-    sticky: false,
-    // 对话框模板
-    template: '<div class="{{classPrefix}}">' +
-          '<a class="{{classPrefix}}-close" href="javascript:">&times;</a>' +
-          '<div class="{{classPrefix}}-loading"></div>' +
-          '<div class="{{classPrefix}}-head">' +
-            '<div class="{{classPrefix}}-title"></div>' +
-          '</div>' +
-          '<div class="{{classPrefix}}-body"></div>' +
-          '<div class="{{classPrefix}}-foot"></div>' +
-        '</div>',
-    title: '&nbsp;'
-    // width: ''
-  };
+  locker = new Locker();
 
 /**
  * Dialog
@@ -93,7 +30,6 @@ var nextHighestIndex = 1000,
  * @constructor
  */
 var Dialog = new Class({
-  /* options: {}, */
 
   id: '',
 
@@ -115,6 +51,7 @@ var Dialog = new Class({
       this.on(this.opt.on);
     }
 
+    // 用于跨框架调用的场景
     this.ctx = this.opt.context;
     this.doc = this.ctx.document;
 
@@ -122,7 +59,7 @@ var Dialog = new Class({
   },
 
   /**
-   * 获取className
+   * 获取内部元素className
    * @method getClassName
    * @private
    */
@@ -139,14 +76,11 @@ var Dialog = new Class({
 
     this.guid = this.opt.id || this.id;
 
-    // 如果在仓库中找到同一ID的实例，则先进行清理
-    if (this.guid && (instance = instanceLocker.get(this.guid))) {
-      instance.clear();
-    }
+    // 清理同一ID实例
+    this.guid && (instance = locker.get(this.guid)) && instance.clear();
 
-    // 确保唯一ID
-    this.guid || (this.guid = Util.nuid());
-    instanceLocker.set(this.guid, this);
+    // 存放当前实例
+    locker.set(this.guid || (this.guid = Util.nuid()), this);
 
     // dialog elements
     dialog = $(new Tempine(this.opt.template).render({
@@ -157,7 +91,7 @@ var Dialog = new Class({
         })
         .css({
           position: this.opt.position,
-          zIndex: (this.opt.zIndex = ++nextHighestIndex),
+          zIndex: (this.opt.zIndex = ++zIndex),
           visibility: 'hidden'
         })
         .on('mousedown', $.proxy(this.focus, this));
@@ -214,8 +148,10 @@ var Dialog = new Class({
       this.dialogClose.hide();
     }
 
-    // title, buttons, content
-    this.title(this.opt.title)
+    // loading, title, buttons, content
+    this
+      .loading(this.opt.loading)
+      .title(this.opt.title)
       .buttons(this.opt.buttons)
       .content(this.opt.content);
 
@@ -301,10 +237,10 @@ var Dialog = new Class({
             mleft = parseInt(dialog.css('marginLeft'), 10) || 0,
             anims = [
                 [-10, 50],
-                [20, 100],
-                [-20, 50],
-                [20, 100],
-                [-10, 50]
+                [10, 100],
+                [-10, 50],
+                [10, 100],
+                [0, 50]
               ],
             executor = function () {
               var anim = anims.shift();
@@ -350,7 +286,9 @@ var Dialog = new Class({
    *     callback: function () {
    *       this.result = 1;
    *       this.close();
-   *     }
+   *     },
+   *     // 隐藏按钮
+   *     visible: false
    *   },
    *   // `＜a class="ui-dialog-button ui-dialog-button-cancel"...＞Cancel＜/a＞`
    *   'cancel': {
@@ -411,49 +349,9 @@ var Dialog = new Class({
    */
   loading: function (show) {
     this.dialogLoading.toggle(show !== false);
+
+    return this;
   },
-
-  // /**
-  //  * 显示按钮
-  //  * @method showButton
-  //  */
-  // showButton: function (name) {
-  //   var n = arguments.length,
-  //     btn;
-  //   if (n) {
-  //     for (; n >= 0; n--) {
-  //       btn = this.bts[arguments[n]];
-  //       if (btn) {
-  //         btn.show();
-  //       }
-  //     }
-  //   } else {
-  //     this.bts.each(function () {
-  //       $(this).show();
-  //     });
-  //   }
-  // },
-
-  // /**
-  //  * 隐藏按钮
-  //  * @method hideButton
-  //  */
-  // hideButton: function () {
-  //   var n = arguments.length,
-  //     btn;
-  //   if (n) {
-  //     for (; n >= 0; n--) {
-  //       btn = this.bts[arguments[n]];
-  //       if (btn) {
-  //         btn.hide();
-  //       }
-  //     }
-  //   } else {
-  //     this.bts.each(function () {
-  //       $(this).hide();
-  //     });
-  //   }
-  // },
 
   /**
    * 清理当前实例
@@ -461,8 +359,6 @@ var Dialog = new Class({
    * @method clear
    */
   clear: function (callback) {
-    var clear;
-
     if (!this.dialog) {
       return;
     }
@@ -472,7 +368,7 @@ var Dialog = new Class({
       this.dialog, this.dialogHead])
         .off('.' + this.guid);
 
-    clear = function () {
+    var clear = function () {
       if (this.dialog) {
         this.dialog.remove();
 
@@ -481,7 +377,7 @@ var Dialog = new Class({
         }
       }
 
-      instanceLocker.remove(this.guid);
+      locker.remove(this.guid);
 
       if (typeof callback === 'function') {
         callback.call(this);
@@ -550,10 +446,10 @@ var Dialog = new Class({
       return;
     }
 
-    if (this.opt.zIndex < nextHighestIndex) {
-      this.opt.zIndex = ++nextHighestIndex;
+    if (this.opt.zIndex < zIndex) {
+      this.opt.zIndex = ++zIndex;
       this.dialog.css({
-        zIndex: nextHighestIndex
+        zIndex: zIndex
       });
     }
 
