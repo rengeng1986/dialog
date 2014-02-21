@@ -234,14 +234,18 @@ var Dialog = new Class({
         })
         .on('mousedown', $.proxy(function () {
           var dialog = this.dialog,
-            mleft = parseInt(dialog.css('marginLeft'), 10) || 0,
+            queue = dialog.queue,
+            mleft, anims, executor;
+          // shake
+          if (typeof queue === 'undefined' || queue().length === 0) {
+            mleft = parseInt(dialog.css('marginLeft'), 10) || 0;
             anims = [
                 [-10, 50],
                 [10, 100],
                 [-10, 50],
                 [10, 100],
                 [0, 50]
-              ],
+              ];
             executor = function () {
               var anim = anims.shift();
               if (anim) {
@@ -251,8 +255,8 @@ var Dialog = new Class({
                 setTimeout(executor, anim[1]);
               }
             };
-          // shake
-          executor();
+            executor();
+          }
         }, this));
 
       if (this.opt.closeTrigger) {
