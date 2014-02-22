@@ -20,7 +20,7 @@
 
 ##history
 
-- 0.1.0 - remove `jQuery`, supports`zepto`
+- 0.1.0 - upgrade `jQuery` to 2.1.0
 - 0.0.5 - add blocker's z-index
 - 0.0.4 - update modules
 - 0.0.3 - 优化代码，简化接口；支持zepto

@@ -26,7 +26,7 @@ define(function (require, exports) {
         }
       }
     }), idx1 = 0, idx2 = 0;
-    dialog.bts['submit'].trigger('click');
+    dialog.dialog.find('[data-button-name="submit"]').trigger('click');
     setTimeout(function () {
       dialog.close();
       equal( idx1, 1, '' );
@@ -53,7 +53,7 @@ define(function (require, exports) {
         }
       }
     }), idx1 = 0, idx2 = 0;
-    dialog.bts['cancel'].trigger('click');
+    dialog.dialog.find('[data-button-name="cancel"]').trigger('click');
     setTimeout(function () {
       dialog.close();
       equal( idx1, 0, '' );

@@ -23,12 +23,12 @@ var Prompt = new Class(Dialog, {
 
     content: function () {
       var pWrap = $('<div/>', this.doc),
-        tWrap = $('<div class="' + this.getClassName('prompt-title') + '"/>', this.doc)
+        tWrap = $('<div class="' + this.cls('prompt-title') + '"/>', this.doc)
             .text(this.opt.content).appendTo(pWrap),
-        cWrap = $('<div class="' + this.getClassName('prompt-content') + '"/>', this.doc)
+        cWrap = $('<div class="' + this.cls('prompt-content') + '"/>', this.doc)
             .appendTo(pWrap);
 
-      this.textInput = $('<input type="text" class="' + this.getClassName('prompt-input') + '"/>', this.doc)
+      this.textInput = $('<input type="text" class="' + this.cls('prompt-input') + '"/>', this.doc)
         .attr({
           tabIndex: -1
         })

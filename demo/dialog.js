@@ -33,7 +33,8 @@ define(function (require, exports) {
           },
           visible: true
         }
-      }
+      },
+      sticky: true
     });
 
   new Dialog({

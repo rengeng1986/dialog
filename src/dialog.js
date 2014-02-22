@@ -17,7 +17,6 @@ var $ = require('$'),
   defaults = require('./defaults');
 
 var
-
   // 初始z-index值
   zIndex = 1000,
 
@@ -40,11 +39,7 @@ var Dialog = new Class({
    */
   __construct: function (options) {
 
-    this.extend({
-      bts: {},
-      opt: $.extend(true, {}, defaults, this.options, options),
-      visible: false
-    });
+    this.opt = $.extend(true, {}, defaults, this.options, options);
 
     // 事件订阅
     if ($.isPlainObject(this.opt.on)) {
@@ -55,16 +50,9 @@ var Dialog = new Class({
     this.ctx = this.opt.context;
     this.doc = this.ctx.document;
 
-    this.init();
-  },
+    this.visible = false;
 
-  /**
-   * 获取内部元素className
-   * @method getClassName
-   * @private
-   */
-  getClassName: function (name) {
-    return this.opt.classPrefix + '-' + name;
+    this.init();
   },
 
   /**
@@ -98,24 +86,24 @@ var Dialog = new Class({
 
     this.extend({
       dialog:         dialog,
-      dialogLoading:  dialog.find('.' + this.getClassName('loading')),
-      dialogHead:     dialog.find('.' + this.getClassName('head')),
-      dialogBody:     dialog.find('.' + this.getClassName('body')),
-      dialogFoot:     dialog.find('.' + this.getClassName('foot')),
-      dialogTitle:    dialog.find('.' + this.getClassName('title')),
-      dialogClose:    dialog.find('.' + this.getClassName('close'))
+      dialogLoading:  dialog.find('.' + this.cls('loading')),
+      dialogHead:     dialog.find('.' + this.cls('head')),
+      dialogBody:     dialog.find('.' + this.cls('body')),
+      dialogFoot:     dialog.find('.' + this.cls('foot')),
+      dialogTitle:    dialog.find('.' + this.cls('title')),
+      dialogClose:    dialog.find('.' + this.cls('close'))
     });
 
     // header
     this.dialogHead
       .on('mousedown.a.' + this.guid, $.proxy(function (e) {
-        this.dialog.addClass(this.getClassName('active'));
+        this.dialog.addClass(this.cls('active'));
 
         $(this.doc)
         .on('mouseup.a.' + this.guid, $.proxy(function () {
           $(this.doc).off('mouseup.a.' + this.guid);
           if (this.dialog) {
-            this.dialog.removeClass(this.getClassName('active'));
+            this.dialog.removeClass(this.cls('active'));
           }
         }, this));
       }, this));
@@ -157,6 +145,9 @@ var Dialog = new Class({
 
     dialog.appendTo(this.opt.container || this.doc.body);
 
+    // blocker
+    this.opt.blocker && this.blocker();
+
     // align
     var align = this.opt.align,
       orig = this.opt.orig;
@@ -189,9 +180,6 @@ var Dialog = new Class({
       display: 'none'
     });
 
-    // blocker
-    this.blocker(this.opt.blocker);
-
     // 发送事件通知
     this.fire('ready');
 
@@ -204,77 +192,66 @@ var Dialog = new Class({
 
   /**
    * 生成遮罩层，模拟模态窗口
-   * @param {boolean} blocker 显示或隐藏遮罩
    * @method blocker
    */
-  blocker: function (blocker) {
-    var css,
-      dialog,
-      dialogBlocker;
-
-    if (blocker) {
-
-      css = {
+  blocker: function () {
+    var css = {
         display: 'none',
         position: this.opt.position,
         zIndex: this.opt.zIndex
-      };
+      },
+      dialog = this.dialog,
+      dialogBlocker;
 
-      dialog = this.dialog;
+    if (css.position === 'absolute') {
+      css.width = this.doc.body.scrollWidth;
+      css.height = this.doc.body.scrollHeight;
+    }
 
-      if (css.position === 'absolute') {
-        css.width = this.doc.body.scrollWidth;
-        css.height = this.doc.body.scrollHeight;
-      }
+    dialogBlocker = $('<div class="' + this.cls('blocker') + '"/>', this.doc)
+      .css(css)
+      .attr({
+        tabIndex: -1
+      })
+      .on('mousedown', $.proxy(function () {
+        var dialog = this.dialog,
+          mleft, anims, executor;
+        // shake
+        if (typeof dialog.queue !== 'function' ||
+            dialog.queue().length === 0) {
+          mleft = parseInt(dialog.css('marginLeft'), 10) || 0;
+          anims = [
+              [-10, 50],
+              [10, 100],
+              [-10, 50],
+              [10, 100],
+              [0, 50]
+            ];
+          executor = function () {
+            var anim = anims.shift();
+            if (anim) {
+              dialog.animate({
+                marginLeft: mleft + anim[0]
+              }, anim[1]);
+              setTimeout(executor, anim[1]);
+            }
+          };
+          executor();
+        }
+      }, this));
 
-      dialogBlocker = $('<div class="' + this.getClassName('blocker') + '"/>', this.doc)
-        .css(css)
-        .attr({
-          tabIndex: -1
-        })
-        .on('mousedown', $.proxy(function () {
-          var dialog = this.dialog,
-            queue = dialog.queue,
-            mleft, anims, executor;
-          // shake
-          if (typeof queue === 'undefined' || queue().length === 0) {
-            mleft = parseInt(dialog.css('marginLeft'), 10) || 0;
-            anims = [
-                [-10, 50],
-                [10, 100],
-                [-10, 50],
-                [10, 100],
-                [0, 50]
-              ];
-            executor = function () {
-              var anim = anims.shift();
-              if (anim) {
-                dialog.animate({
-                  marginLeft: mleft + anim[0]
-                }, anim[1]);
-                setTimeout(executor, anim[1]);
-              }
-            };
-            executor();
+    if (this.opt.closeTrigger) {
+
+      dialogBlocker
+        .on('keydown.' + this.guid, $.proxy(function (e) {
+          // escape
+          if (e.keyCode === 27) {
+            this.dialogClose.trigger('click');
           }
         }, this));
-
-      if (this.opt.closeTrigger) {
-
-        dialogBlocker
-          .on('keydown.' + this.guid, $.proxy(function (e) {
-            // escape
-            if (e.keyCode === 27) {
-              this.dialogClose.trigger('click');
-            }
-          }, this));
-      }
-
-      this.dialogBlocker = dialogBlocker.prependTo(this.opt.container || this.doc.body);
-
-    } else {
-      this.dialogBlocker && this.dialogBlocker.hide();
     }
+
+    this.dialogBlocker = dialogBlocker.prependTo(this.opt.container || this.doc.body);
 
     return this;
   },
@@ -318,12 +295,13 @@ var Dialog = new Class({
   buttons: function (buttons) {
     var buttonClassPrefix;
     if (buttons) {
-      buttonClassPrefix = this.getClassName('button');
+      buttonClassPrefix = this.cls('button');
       $.each(buttons, $.proxy(function (name, params) {
         var btn = $('<a class="' +
             buttonClassPrefix + ' ' +
-            buttonClassPrefix + '-' +
-            name.toLowerCase() + '" href="javascript:"/>', this.doc)
+            buttonClassPrefix + '-' + name.toLowerCase() + '"' +
+            ' data-button-name="' + name.toLowerCase() + '"' +
+            ' href="javascript:"/>', this.doc)
           .text(params.title || name)
           .on('click', $.proxy(function () {
             this.fire(name);
@@ -337,8 +315,7 @@ var Dialog = new Class({
           btn.hide();
         }
 
-        this.bts[name] =
-            btn[this.opt.reverseButtons ? 'prependTo' : 'appendTo'](this.dialogFoot);
+        btn[this.opt.reverseButtons ? 'prependTo' : 'appendTo'](this.dialogFoot);
       }, this));
 
     }
@@ -347,14 +324,12 @@ var Dialog = new Class({
   },
 
   /**
-   * 显示加载中遮罩层
-   * @param {Boolean} [show] 是否显示（默认为`TRUE`）
-   * @method loading
+   * 获取内部元素className
+   * @method cls
+   * @private
    */
-  loading: function (show) {
-    this.dialogLoading.toggle(show !== false);
-
-    return this;
+  cls: function (name) {
+    return this.opt.classPrefix + '-' + name;
   },
 
   /**
@@ -483,6 +458,17 @@ var Dialog = new Class({
   },
 
   /**
+   * 显示加载中遮罩层
+   * @param {Boolean} [show] 是否显示（默认为`TRUE`）
+   * @method loading
+   */
+  loading: function (show) {
+    this.dialogLoading.toggle(show !== false);
+
+    return this;
+  },
+
+  /**
    * 设定窗体位置
    * @method locate
    * @private
@@ -504,7 +490,7 @@ var Dialog = new Class({
       dialog.animate({
           left: Math.max(left, 0),
           top: Math.max(top, 0)
-        }, 50);
+        }, this.opt.speed * 0.1);
 
     }, this);
 
@@ -555,10 +541,10 @@ var Dialog = new Class({
   title: function (title) {
 
     if (title === false) {
-      this.dialog.addClass(this.getClassName('notitle'));
+      this.dialog.addClass(this.cls('notitle'));
       this.dialogTitle.hide().empty();
     } else {
-      this.dialog.removeClass(this.getClassName('notitle'));
+      this.dialog.removeClass(this.cls('notitle'));
       this.dialogTitle.html(title).show();
     }
 

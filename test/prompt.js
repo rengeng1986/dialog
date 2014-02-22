@@ -12,7 +12,7 @@ define(function (require, exports) {
       content: 'your name:'
     });
     dialog.dialogBody.find('input').val('Tom');
-    dialog.bts.submit.trigger('click');
+    dialog.dialog.find('[data-button-name="submit"]').trigger('click');
     equal( dialog.result, 'Tom', '' );
     dialog.close();
   });

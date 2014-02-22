@@ -20,7 +20,7 @@ define(function (require, exports) {
         }
       }
     }), idx1 = 0, idx2 = 0;
-    dialog.bts['submit'].trigger('click');
+    dialog.dialog.find('[data-button-name="submit"]').trigger('click');
     setTimeout(function () {
       equal( idx1, 1, '' );
       equal( idx2, 2, '' );
