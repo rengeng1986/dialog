@@ -35,7 +35,7 @@
     "grunt-contrib-clean": "*",
     "grunt-contrib-copy": "*",
     "grunt-contrib-jshint": "*",
-    "grunt-contrib-qunit": "*",
+    "grunt-qunit-istanbul": "*",
     "grunt-contrib-uglify": "*",
     "grunt-contrib-yuidoc": "*",
     "grunt-cmd-transport": "*",
