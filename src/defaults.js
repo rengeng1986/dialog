@@ -3,7 +3,7 @@ define({
   align: 'centermiddle',
   // 是否显示对话框
   visible: true,
-  // 是否模拟为模态窗口
+  // 是否模拟为模态对话框
   blocker: false,
   // 按钮组
   buttons: {},
@@ -21,6 +21,8 @@ define({
   // content: '',
   // 上下文，默认为当前window，提供此接口用于跨window操作
   context: window,
+  // 用于自定义样式
+  clsHook: function (name) { return this.cls(name); },
   // 对话框显示隐藏时的动画效果
   effects: {
     show: function (element, speed, callback) {

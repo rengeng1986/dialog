@@ -2,7 +2,11 @@
   "name": "dialog",
   "version": "0.1.0",
   "description": "alert, confirm, dialog, prompt, tips",
-  "keywords": [ "dialog", "seajs", "modules" ],
+  "keywords": [
+    "dialog",
+    "seajs",
+    "modules"
+  ],
   "homepage": "https://github.com/crossjs/dialog",
   "bugs": {
     "url": "https://github.com/crossjs/dialog/issues"
@@ -28,23 +32,28 @@
   "engines": {
     "node": ">= 0.8.0"
   },
-  "dependencies": {
-  },
+  "dependencies": {},
   "devDependencies": {
     "grunt": "*",
     "grunt-contrib-clean": "*",
     "grunt-contrib-copy": "*",
     "grunt-contrib-jshint": "*",
-    "grunt-contrib-qunit": "*",
     "grunt-contrib-uglify": "*",
     "grunt-contrib-yuidoc": "*",
     "grunt-cmd-transport": "*",
     "grunt-cmd-concat": "*",
+    "grunt-qunit-istanbul": "~0.3.0",
     "matchdep": "*"
   },
   "family": "crossjs",
   "spm": {
-    "output": [ "alert.js", "confirm.js", "dialog.js", "prompt.js", "tips.js" ],
+    "output": [
+      "alert.js",
+      "confirm.js",
+      "dialog.js",
+      "prompt.js",
+      "tips.js"
+    ],
     "alias": {
       "$": "$",
       "util": "crossjs/util/0.1.0/util",

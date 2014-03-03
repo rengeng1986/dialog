@@ -86,24 +86,24 @@ var Dialog = new Class({
 
     this.extend({
       dialog:         dialog,
-      dialogLoading:  dialog.find('.' + this.cls('loading')),
-      dialogHead:     dialog.find('.' + this.cls('head')),
-      dialogBody:     dialog.find('.' + this.cls('body')),
-      dialogFoot:     dialog.find('.' + this.cls('foot')),
-      dialogTitle:    dialog.find('.' + this.cls('title')),
-      dialogClose:    dialog.find('.' + this.cls('close'))
+      dialogLoading:  dialog.find('.' + this.opt.clsHook.call(this, 'loading')),
+      dialogHead:     dialog.find('.' + this.opt.clsHook.call(this, 'head')),
+      dialogBody:     dialog.find('.' + this.opt.clsHook.call(this, 'body')),
+      dialogFoot:     dialog.find('.' + this.opt.clsHook.call(this, 'foot')),
+      dialogTitle:    dialog.find('.' + this.opt.clsHook.call(this, 'title')),
+      dialogClose:    dialog.find('.' + this.opt.clsHook.call(this, 'close'))
     });
 
     // header
     this.dialogHead
       .on('mousedown.a.' + this.guid, $.proxy(function (e) {
-        this.dialog.addClass(this.cls('active'));
+        this.dialog.addClass(this.opt.clsHook.call(this, 'active'));
 
         $(this.doc)
         .on('mouseup.a.' + this.guid, $.proxy(function () {
           $(this.doc).off('mouseup.a.' + this.guid);
           if (this.dialog) {
-            this.dialog.removeClass(this.cls('active'));
+            this.dialog.removeClass(this.opt.clsHook.call(this, 'active'));
           }
         }, this));
       }, this));
@@ -208,7 +208,7 @@ var Dialog = new Class({
       css.height = this.doc.body.scrollHeight;
     }
 
-    dialogBlocker = $('<div class="' + this.cls('blocker') + '"/>', this.doc)
+    dialogBlocker = $('<div class="' + this.opt.clsHook.call(this, 'blocker') + '"/>', this.doc)
       .css(css)
       .attr({
         tabIndex: -1
@@ -295,7 +295,7 @@ var Dialog = new Class({
   buttons: function (buttons) {
     var buttonClassPrefix;
     if (buttons) {
-      buttonClassPrefix = this.cls('button');
+      buttonClassPrefix = this.opt.clsHook.call(this, 'button');
       $.each(buttons, $.proxy(function (name, params) {
         var btn = $('<a class="' +
             buttonClassPrefix + ' ' +
@@ -478,11 +478,11 @@ var Dialog = new Class({
 
       var dialog = this.dialog,
 
-        left = ($(this.ctx).width() - dialog.width()) *
+        left = ($(this.ctx).width() - dialog.outerWidth()) *
             this.opt.orig.x +
             (this.opt.position === 'fixed' ? 0 : $(this.ctx).scrollLeft()) +
             this.opt.offset.x,
-        top = ($(this.ctx).height() - dialog.height()) *
+        top = ($(this.ctx).height() - dialog.outerHeight()) *
             this.opt.orig.y +
             (this.opt.position === 'fixed' ? 0 : $(this.ctx).scrollTop()) +
             this.opt.offset.y;
@@ -501,7 +501,9 @@ var Dialog = new Class({
 
       $(this.ctx)
         .off('.l.' + this.guid)
-        .on('resize.l.' + this.guid + ' scroll.l.' + this.guid, locate);
+        .on('resize.l.' + this.guid +
+            (this.opt.position === 'fixed' ? '' : ' scroll.l.' + this.guid),
+            locate);
 
     } else {
 
@@ -541,10 +543,10 @@ var Dialog = new Class({
   title: function (title) {
 
     if (title === false) {
-      this.dialog.addClass(this.cls('notitle'));
+      this.dialog.addClass(this.opt.clsHook.call(this, 'notitle'));
       this.dialogTitle.hide().empty();
     } else {
-      this.dialog.removeClass(this.cls('notitle'));
+      this.dialog.removeClass(this.opt.clsHook.call(this, 'notitle'));
       this.dialogTitle.html(title).show();
     }
 

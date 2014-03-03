@@ -22,25 +22,33 @@ define(function (require, exports) {
     equal( dialog.dialogBody.html(), '<i>html string</i>', '' );
     dialog.close();
   });
+  asyncTest('loading', function() {
+    var dialog = new Dialog({
+      content: 'will show loading'
+    });
+    setTimeout(function () {
+    dialog.loading();
+      ok( dialog.dialogLoading.is(':visible'), '' );
+      dialog.close();
+      start();
+    }, 500);
+  });
+  asyncTest('loading', function() {
+    var dialog = new Dialog({
+      content: 'will show loading',
+      loading: true
+    });
+    setTimeout(function () {
+      ok( dialog.dialogLoading.is(':visible'), '' );
+      dialog.close();
+      start();
+    }, 500);
+  });
   test('loading', function() {
     var dialog = new Dialog({
       content: 'will show loading',
-      blocker: true,
-      buttons: {
-        submit: {
-          title: 'Submit',
-          callback: function () {},
-          visible: true
-        },
-        cancel: {
-          title: 'Cancel',
-          callback: function () {},
-          visible: true
-        }
-      }
+      loading: true
     });
-    dialog.loading();
-    ok( dialog.dialogLoading.is(':visible'), '' );
     dialog.loading(false);
     ok( dialog.dialogLoading.is(':hidden'), '' );
     dialog.close();

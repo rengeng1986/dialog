@@ -23,12 +23,12 @@ var Prompt = new Class(Dialog, {
 
     content: function () {
       var pWrap = $('<div/>', this.doc),
-        tWrap = $('<div class="' + this.cls('prompt-title') + '"/>', this.doc)
-            .text(this.opt.content).appendTo(pWrap),
-        cWrap = $('<div class="' + this.cls('prompt-content') + '"/>', this.doc)
+        tWrap = $('<div class="' + this.opt.clsHook.call(this, 'prompt-title') + '"/>', this.doc)
+            .append(this.opt.content).appendTo(pWrap),
+        cWrap = $('<div class="' + this.opt.clsHook.call(this, 'prompt-content') + '"/>', this.doc)
             .appendTo(pWrap);
 
-      this.textInput = $('<input type="text" class="' + this.cls('prompt-input') + '"/>', this.doc)
+      this.textInput = $('<input type="text" class="' + this.opt.clsHook.call(this, 'prompt-input') + '"/>', this.doc)
         .attr({
           tabIndex: -1
         })
@@ -36,7 +36,7 @@ var Prompt = new Class(Dialog, {
           if (e.keyCode === 9) {
             e.preventDefault();
           } else if (e.keyCode === 13) {
-            this.bts.submit.trigger('click');
+            this.dialogFoot.find('[data-button-name="submit"]').trigger('click');
           }
         }, this))
         .val(this.opt.defaultValue)
