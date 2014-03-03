@@ -25,6 +25,16 @@ module.exports = function(grunt) {
     },
 
     qunit: {
+      options: {
+        '--web-security': 'no',
+        coverage: {
+          src: ['src/*.js'],
+          instrumentedFiles: 'temp/',
+          htmlReport: 'report/coverage',
+          coberturaReport: 'report/',
+          linesThresholdPct: 85
+        }
+      },
       all: ['test/*.html']
     },
 

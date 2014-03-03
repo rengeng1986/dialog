@@ -38,11 +38,11 @@
     "grunt-contrib-clean": "*",
     "grunt-contrib-copy": "*",
     "grunt-contrib-jshint": "*",
+    "grunt-qunit-istanbul": "*",
     "grunt-contrib-uglify": "*",
     "grunt-contrib-yuidoc": "*",
     "grunt-cmd-transport": "*",
     "grunt-cmd-concat": "*",
-    "grunt-qunit-istanbul": "~0.3.0",
     "matchdep": "*"
   },
   "family": "crossjs",
