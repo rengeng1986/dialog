@@ -2,14 +2,15 @@
 
 [![Bitdeli Badge](https://d2weczhvl823v0.cloudfront.net/crossjs/dialog/trend.png)](https://bitdeli.com/free "Bitdeli Badge")
 [![Build Status](https://api.travis-ci.org/crossjs/dialog.png?branch=master)](http://travis-ci.org/crossjs/dialog)
+[![Coverage Status](https://coveralls.io/repos/crossjs/dialog/badge.png?branch=master)](https://coveralls.io/r/crossjs/dialog?branch=master)
 [![Built with Grunt](https://cdn.gruntjs.com/builtwith.png)](http://gruntjs.com/)
 
  > seajs module
 
 ##how to require
 
-1. run `spm install crossjs/dialog`
-1. write `require('crossjs/dialog/VERSION.NUMBER/dialog')`
+1. run `spm install pandora/dialog`
+1. write `require('pandora/dialog/VERSION.NUMBER/dialog')`
 
 ##how to build
 
@@ -20,9 +21,4 @@
 
 ##history
 
-- 0.1.0 - upgrade `jQuery` to 2.1.0
-- 0.0.5 - add blocker's z-index
-- 0.0.4 - update modules
-- 0.0.3 - 优化代码，简化接口；支持zepto
-- 0.0.2 - 优化事件逻辑；删除`Dialog`冗余静态方法
-- 0.0.1 - init
+- 1.0.0 - release
