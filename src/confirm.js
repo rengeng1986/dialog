@@ -1,14 +1,14 @@
 define(function (require, exports, module) {
 
 /**
- * 弹窗
+ * 对话框
+ *
  * @module Dialog
  */
 
 'use strict';
 
-var Class = require('class'),
-  Dialog = require('./dialog');
+var Dialog = require('./dialog');
 
 /**
  * Confirm
@@ -16,34 +16,37 @@ var Class = require('class'),
  * @extends Dialog
  * @constructor
  */
-var Confirm = new Class(Dialog, {
+module.exports = Dialog.extend({
 
-    id: 'Confirm',
-
-    options: {
-      blocker: true,
-      closeHandler: 'cancel',
-      buttons: {
-        submit: {
-          title: '确定',
-          callback: function () {
-            this.result = true;
-            this.close(this.opt.callback);
-          }
-        },
-        cancel: {
-          title: '取消',
-          callback: function () {
-            this.result = false;
-            this.close(this.opt.callback);
-          }
-        }
+  defaults: {
+    submit: '确定',
+    cancel: '取消',
+    // 事件代理
+    delegates: {
+      'click [data-role=submit]': function (e) {
+        e.preventDefault();
+        this.fire('submit') !== false && this.hide();
+      },
+      'click [data-role=cancel]': function (e) {
+        e.preventDefault();
+        this.fire('cancel') !== false && this.hide();
       }
-    }
+    },
+    events: {
+      // 设置主体内容前
+      'before:setContent': function () {
+        this.data({
+          title: this.option('title'),
+          submit: this.option('submit'),
+          cancel: this.option('cancel')
+        });
+      },
+      'after:hide': 'destroy'
+    },
+    mask: true,
+    title: '确认框'
+  }
 
-  });
-
-return Confirm;
-
+});
 
 });

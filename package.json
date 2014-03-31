@@ -52,11 +52,11 @@
       "alert.js",
       "confirm.js",
       "dialog.js",
-      "prompt.js",
       "tips.js"
     ],
     "alias": {
       "$": "$",
+      "handlebars": "gallery/handlebars/1.0.2/runtime",
       "widget": "pandora/widget/1.0.0/widget"
     }
   }

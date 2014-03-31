@@ -1,0 +1,61 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>tips</title>
+<link rel="stylesheet" href="./dialog.css">
+</head>
+<body>
+<p>p</p>
+<p>p</p>
+<p>p</p>
+<p>p</p>
+<p>p</p>
+<p>p</p>
+<p>p</p>
+<p>p</p>
+<p>p</p>
+<p>p</p>
+<p>p</p>
+<p>p</p>
+<p>p</p>
+<p>p</p>
+<p>p</p>
+<p>p</p>
+<p>p</p>
+<p>p</p>
+<p>p</p>
+<p>p</p>
+<p>p</p>
+<p>p</p>
+<p>p</p>
+<script src="../vendor/jquery/jquery.js"></script>
+<script src="../vendor/seajs/sea.js"></script>
+<script>
+  seajs.config({
+    'base': '../sea-modules/',
+    'map': [
+      ['/sea-modules/jquery', '/vendor/jquery/jquery']
+    ],
+    'alias': {
+      '$': 'jquery',
+      'tips': 'pandora/dialog/1.0.0/tips'
+    }
+  });
+  seajs.use(['tips'], function (Tips) {
+
+    'use strict';
+
+    new Tips({
+      align: 'topleft',
+      content: '显示的两秒后自动消失'
+    });
+
+    console.log(new Tips({
+      timeout: 10,
+      content: '显示的10秒后自动消失'
+    }));
+  });
+</script>
+</body>
+</html>

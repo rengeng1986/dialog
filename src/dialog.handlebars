@@ -1,0 +1,13 @@
+<a class="{{classPrefix}}-close" href="javascript:" data-role="close">{{{close}}}</a>
+{{#if title}}
+<div class="{{classPrefix}}-head" data-role="head">{{{title}}}</div>
+{{/if}}
+<div class="{{classPrefix}}-body" data-role="content">{{{content}}}</div>
+{{#if submit}}
+<div class="{{classPrefix}}-foot" data-role="foot">
+  <a href="javascript:;" class="{{classPrefix}}-submit" data-role="submit">{{{submit}}}</a>
+  {{#if cancel}}
+  <a href="javascript:;" class="{{classPrefix}}-cancel" data-role="cancel">{{{cancel}}}</a>
+  {{/if}}
+</div>
+{{/if}}

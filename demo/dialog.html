@@ -6,24 +6,79 @@
 <link rel="stylesheet" href="./dialog.css">
 </head>
 <body>
-  <div id="qunit-fixture">test markup</div>
-  <script src="../vendor/jquery/jquery.js"></script>
-  <script src="../vendor/seajs/sea.js"></script>
-  <script>
-    seajs.config({
-      'base': '../sea-modules/',
-      'map': [
-        ['/sea-modules/jquery', '/vendor/jquery/jquery']
-      ],
-      'alias': {
-        '$': 'jquery',
-        'util': 'crossjs/util/0.1.0/util',
-        'class': 'crossjs/class/0.1.0/class',
-        'locker': 'crossjs/locker/0.1.0/locker',
-        'tempine': 'crossjs/tempine/0.1.0/tempine'
+<p>p</p>
+<p>p</p>
+<p>p</p>
+<p>p</p>
+<p>p</p>
+<p>p</p>
+<p>p</p>
+<p>p</p>
+<p>p</p>
+<p>p</p>
+<p>p</p>
+<p>p</p>
+<p>p</p>
+<p>p</p>
+<p>p</p>
+<p>p</p>
+<p>p</p>
+<p>p</p>
+<p>p</p>
+<p>p</p>
+<p>p</p>
+<p>p</p>
+<p>p</p>
+<script src="../vendor/jquery/jquery.js"></script>
+<script src="../vendor/seajs/sea.js"></script>
+<script>
+  seajs.config({
+    'base': '../sea-modules/',
+    'map': [
+      ['/sea-modules/jquery', '/vendor/jquery/jquery']
+    ],
+    'alias': {
+      '$': 'jquery',
+      'dialog': 'pandora/dialog/1.0.0/dialog'
+    }
+  });
+  seajs.use(['dialog'], function (Dialog) {
+
+    'use strict';
+
+    new Dialog({
+        content: 'text string',
+        align: 'topleft'
+      });
+
+    new Dialog({
+        content: '<i>html string</i>',
+        align: 'lefttop',
+        offset: {
+          x: 50,
+          y: 10
+        }
+      });
+
+    new Dialog({
+        content: 'text string',
+        align: 'bottomright'
+      });
+
+    console.log(new Dialog({
+      position: 'absolute',
+      content: '绝对定位；有遮罩层；机率性不可关闭；关闭后销毁对象',
+      mask: true,
+      events: {
+        'before:hide': function (e) {
+          return Math.random() < 0.5;
+        },
+        'after:hide': function (e) {
+          this.destroy();
+        }
       }
-    });
-    seajs.use(['./dialog.js']);
-  </script>
+    }));
+  });
+</script>
 </body>
 </html>

@@ -1,41 +1,46 @@
 define(function (require, exports, module) {
 
 /**
- * 弹窗
+ * 对话框
+ *
  * @module Dialog
  */
 
 'use strict';
 
-var Class = require('class'),
-  Dialog = require('./dialog');
+var Dialog = require('./dialog');
 
 /**
- * Alert
- * @class Alert
+ * Confirm
+ * @class Confirm
  * @extends Dialog
  * @constructor
  */
-var Alert = new Class(Dialog, {
+module.exports = Dialog.extend({
 
-    id: 'Alert',
-
-    options: {
-      blocker: true,
-      closeHandler: 'submit',
-      buttons: {
-        submit: {
-          title: '提交',
-          callback: function () {
-            this.close(this.opt.callback);
-          }
-        }
+  defaults: {
+    submit: '确定',
+    // 事件代理
+    delegates: {
+      'click [data-role=submit]': function (e) {
+        e.preventDefault();
+        this.fire('submit') !== false && this.hide();
       }
-    }
+    },
+    events: {
+      // 设置主体内容前
+      'before:setContent': function () {
+        this.data({
+          title: this.option('title'),
+          submit: this.option('submit')
+        });
+      },
+      'after:hide': 'destroy'
+    },
+    mask: true,
+    title: '提示框'
+  }
 
-  });
-
-return Alert;
-
+});
 
 });

@@ -8,553 +8,283 @@ define(function (require, exports, module) {
 'use strict';
 
 var $ = require('$'),
-  Util = require('util'),
-  Locker = require('locker'),
-  Class = require('class'),
-  Tempine = require('tempine'),
+  Widget = require('widget'),
+  // Handlebars = require('handlebars'),
 
-  // 全局默认参数
-  defaults = require('./defaults');
+  // 遮罩层
+  Mask = require('./mask');
 
-var
-  // 初始z-index值
-  zIndex = 1000,
-
-  // 存储对话框实例
-  locker = new Locker();
+var dialogInTop;
 
 /**
  * Dialog
+ *
  * @class Dialog
  * @constructor
  */
-var Dialog = new Class({
+var Dialog = Widget.extend({
 
-  id: '',
-
-  /**
-   * 构造函数
-   * @method __construct
-   * @param {Object} options 参数
-   */
-  __construct: function (options) {
-
-    this.opt = $.extend(true, {}, defaults, this.options, options);
-
-    // 事件订阅
-    if ($.isPlainObject(this.opt.on)) {
-      this.on(this.opt.on);
-    }
-
-    // 用于跨框架调用的场景
-    this.ctx = this.opt.context;
-    this.doc = this.ctx.document;
-
-    this.visible = false;
-
-    this.init();
-  },
-
-  /**
-   * 生成dialog前的准备工作：清理、定位
-   * @method init
-   */
-  init: function () {
-    var instance, dialog;
-
-    this.guid = this.opt.id || this.id;
-
-    // 清理同一ID实例
-    this.guid && (instance = locker.get(this.guid)) && instance.clear();
-
-    // 存放当前实例
-    locker.set(this.guid || (this.guid = Util.nuid()), this);
-
-    // dialog elements
-    dialog = $(new Tempine(this.opt.template).render({
-          classPrefix: this.opt.classPrefix
-        }), this.doc)
-        .attr({
-          tabIndex: -1
-        })
-        .css({
-          position: this.opt.position,
-          zIndex: (this.opt.zIndex = ++zIndex),
-          visibility: 'hidden'
-        })
-        .on('mousedown', $.proxy(this.focus, this));
-
-    this.extend({
-      dialog:         dialog,
-      dialogLoading:  dialog.find('.' + this.opt.clsHook.call(this, 'loading')),
-      dialogHead:     dialog.find('.' + this.opt.clsHook.call(this, 'head')),
-      dialogBody:     dialog.find('.' + this.opt.clsHook.call(this, 'body')),
-      dialogFoot:     dialog.find('.' + this.opt.clsHook.call(this, 'foot')),
-      dialogTitle:    dialog.find('.' + this.opt.clsHook.call(this, 'title')),
-      dialogClose:    dialog.find('.' + this.opt.clsHook.call(this, 'close'))
-    });
-
-    // header
-    this.dialogHead
-      .on('mousedown.a.' + this.guid, $.proxy(function (e) {
-        this.dialog.addClass(this.opt.clsHook.call(this, 'active'));
-
-        $(this.doc)
-        .on('mouseup.a.' + this.guid, $.proxy(function () {
-          $(this.doc).off('mouseup.a.' + this.guid);
-          if (this.dialog) {
-            this.dialog.removeClass(this.opt.clsHook.call(this, 'active'));
-          }
-        }, this));
-      }, this));
-
-    // close trigger
-    if (this.opt.closeTrigger) {
-      this.dialogClose
-        .on('mousedown', function (e) {
-          e.stopPropagation();
-        })
-        .on('click', $.proxy(function () {
-          var closeHandler = this.opt.closeHandler;
-          // 重置result，避免重复执行
-          delete this.result;
-          if (typeof closeHandler === 'function') {
-            closeHandler.call(this);
-          } else if (typeof closeHandler === 'string') {
-            this.fire(closeHandler);
-          }
-        }, this));
-
-      this.dialog
-        .on('keydown.' + this.guid, $.proxy(function (e) {
-          // escape
-          if (e.keyCode === 27) {
-            this.dialogClose.trigger('click');
-          }
-        }, this));
-    } else {
-      this.dialogClose.hide();
-    }
-
-    // loading, title, buttons, content
-    this
-      .loading(this.opt.loading)
-      .title(this.opt.title)
-      .buttons(this.opt.buttons)
-      .content(this.opt.content);
-
-    dialog.appendTo(this.opt.container || this.doc.body);
-
-    // blocker
-    this.opt.blocker && this.blocker();
-
-    // align
-    var align = this.opt.align,
-      orig = this.opt.orig;
-
-    $.each(['left', 'center', 'right'], $.proxy(function (i, n) {
-      if (align.indexOf(n) !== -1) {
-        orig.x = i / 2;
-        return false;
-      }
-    }, this));
-
-    $.each(['top', 'middle', 'bottom'], $.proxy(function (i, n) {
-      if (align.indexOf(n) !== -1) {
-        orig.y = i / 2;
-        return false;
-      }
-    }, this));
-
-    // width
-    if (this.opt.width) {
-      this.dialog.css({
-        width: this.opt.width
-      });
-    }
-
-    this.locate();
-
-    this.dialog.css({
-      visibility: 'visible',
-      display: 'none'
-    });
-
-    // 发送事件通知
-    this.fire('ready');
-
-    if (this.opt.visible) {
-      this.show();
-    }
-
-    return this;
-  },
-
-  /**
-   * 生成遮罩层，模拟模态窗口
-   * @method blocker
-   */
-  blocker: function () {
-    var css = {
-        display: 'none',
-        position: this.opt.position,
-        zIndex: this.opt.zIndex
+  defaults: {
+    // 对话框默认位置，
+    // 可选值为`left|center|right|top|middle|bottom`的组合
+    align: 'centermiddle',
+    // 是否显示对话框
+    autoShow: true,
+    // 样式前缀
+    classPrefix: 'ue-dialog',
+    // 关闭
+    close: '&times;',
+    // 事件代理
+    delegates: {
+      'keydown': function (e) {
+        (e.keyCode === 27) && this.hide();
       },
-      dialog = this.dialog,
-      dialogBlocker;
+      'mousedown': 'focus',
+      'click [data-role=close]': 'hide'
+    },
+    // 对话框显示隐藏时的动画效果
+    effect: 'fade',
+    // element: '<div class="ue-component"></div>',
+    // 对话框ID
+    // id: '',
+    // 是否模拟为模态对话框，即显示遮罩层
+    mask: false,
+    offset: {
+      // 对话框相对于原点位置的位移像素值
+      x: 0,
+      y: 0
+    },
+    // 原点位置
+    orig: {},
+    position: (!!window.ActiveXObject && !window.XMLHttpRequest) ? 'absolute' : 'fixed',
+    // 对话框模板
+    template: require('./dialog.handlebars'),
+    width: 'auto',
+    zIndex: 901
+  },
 
-    if (css.position === 'absolute') {
-      css.width = this.doc.body.scrollWidth;
-      css.height = this.doc.body.scrollHeight;
-    }
+  setup: function () {
+    this.state(Dialog.STATE.INITIAL);
 
-    dialogBlocker = $('<div class="' + this.opt.clsHook.call(this, 'blocker') + '"/>', this.doc)
-      .css(css)
+    // element
+    this.element
       .attr({
         tabIndex: -1
       })
-      .on('mousedown', $.proxy(function () {
-        var dialog = this.dialog,
-          mleft, anims, executor;
-        // shake
-        if (typeof dialog.queue !== 'function' ||
-            dialog.queue().length === 0) {
-          mleft = parseInt(dialog.css('marginLeft'), 10) || 0;
-          anims = [
-              [-10, 50],
-              [10, 100],
-              [-10, 50],
-              [10, 100],
-              [0, 50]
-            ];
-          executor = function () {
-            var anim = anims.shift();
-            if (anim) {
-              dialog.animate({
-                marginLeft: mleft + anim[0]
-              }, anim[1]);
-              setTimeout(executor, anim[1]);
-            }
-          };
-          executor();
-        }
-      }, this));
+      .css({
+        position: this.option('position'),
+        zIndex: this.option('zIndex'),
+        width: this.option('width')
+      });
 
-    if (this.opt.closeTrigger) {
-
-      dialogBlocker
-        .on('keydown.' + this.guid, $.proxy(function (e) {
-          // escape
-          if (e.keyCode === 27) {
-            this.dialogClose.trigger('click');
-          }
-        }, this));
-    }
-
-    this.dialogBlocker = dialogBlocker.prependTo(this.opt.container || this.doc.body);
-
-    return this;
-  },
-
-  /**
-   * 生成按钮
-   * @example
-   * ```
-   * this.buttons({
-   *   // `＜a class="ui-dialog-button ui-dialog-button-submit"...＞Submit＜/a＞`
-   *   'submit': {
-   *     title: 'Submit',
-   *     callback: function () {
-   *       this.result = 1;
-   *       this.close();
-   *     },
-   *     // 隐藏按钮
-   *     visible: false
-   *   },
-   *   // `＜a class="ui-dialog-button ui-dialog-button-cancel"...＞Cancel＜/a＞`
-   *   'cancel': {
-   *     title: 'Cancel',
-   *     callback: function () {
-   *       this.result = 0;
-   *       this.close();
-   *     }
-   *   },
-   *   // `＜a class="ui-dialog-button ui-dialog-button-ignore"...＞Ignore＜/a＞`
-   *   'ignore': {
-   *     title: 'Ignore',
-   *     callback: function () {
-   *       this.result = -1;
-   *       this.close();
-   *     }
-   *   }
-   * });
-   * ```
-   * @method buttons
-   * @param {Object} buttons 按钮组
-   */
-  buttons: function (buttons) {
-    var buttonClassPrefix;
-    if (buttons) {
-      buttonClassPrefix = this.opt.clsHook.call(this, 'button');
-      $.each(buttons, $.proxy(function (name, params) {
-        var btn = $('<a class="' +
-            buttonClassPrefix + ' ' +
-            buttonClassPrefix + '-' + name.toLowerCase() + '"' +
-            ' data-button-name="' + name.toLowerCase() + '"' +
-            ' href="javascript:"/>', this.doc)
-          .text(params.title || name)
-          .on('click', $.proxy(function () {
-            this.fire(name);
-          }, this));
-
-        if (typeof params.callback === 'function') {
-          this.on(name, $.proxy(params.callback, this));
-        }
-
-        if (params.visible === false) {
-          btn.hide();
-        }
-
-        btn[this.opt.reverseButtons ? 'prependTo' : 'appendTo'](this.dialogFoot);
-      }, this));
-
-    }
-
-    return this;
-  },
-
-  /**
-   * 获取内部元素className
-   * @method cls
-   * @private
-   */
-  cls: function (name) {
-    return this.opt.classPrefix + '-' + name;
-  },
-
-  /**
-   * 清理当前实例
-   * @param {Function} [callback] 回调函数
-   * @method clear
-   */
-  clear: function (callback) {
-    if (!this.dialog) {
-      return;
-    }
-
-    // clear bindings
-    $([this.ctx, this.doc, this.doc.body,
-      this.dialog, this.dialogHead])
-        .off('.' + this.guid);
-
-    var clear = function () {
-      if (this.dialog) {
-        this.dialog.remove();
-
-        if (this.dialogBlocker) {
-          this.dialogBlocker.remove();
-        }
-      }
-
-      locker.remove(this.guid);
-
-      if (typeof callback === 'function') {
-        callback.call(this);
-      }
-    };
-
-    if (typeof callback === 'function') {
-      this.hide($.proxy(clear, this));
-    } else {
-      clear.call(this);
-    }
-  },
-
-  /**
-   * 关闭窗体
-   * 首先执行全局回调函数`opt.callback`，如返回值为`false`，则终止执行
-   * @param {Function} [callback] 全局回调函数
-   * @method close
-   */
-  close: function (callback) {
-    if (!this.dialog) {
-      return;
-    }
-
-    if (typeof callback === 'function') {
-      // 执行全局回调函数，如返回值为`false`，则终止执行
-      if (callback.call(this) === false) {
-        return;
-      }
-    }
-
-    this.clear(function () {
-      if (!this.dialog) {
-        return;
-      }
-
-      this.fire('close');
-
-      var key;
-      for (key in this) {
-        if (this.hasOwnProperty(key)) {
-          delete this[key];
-        }
-      }
-
+    // 初始化data，用于模板渲染
+    this.data({
+      classPrefix: this.option('classPrefix'),
+      close: this.option('close'),
+      content: this.option('content')
     });
+
+    // 设置内容
+    this.setContent();
+
+    // 计算对齐
+    this.setAlign();
+
+    this.state(Dialog.STATE.READY);
+
+    // 自动显示
+    this.option('autoShow') && this.show();
+
+    return this;
   },
 
   /**
    * 设置内容
-   * @method content
-   * @param {Mixture} content 内容
+   *
+   * @method setContent
+   * @param {Mixed} [content] 内容
    */
-  content: function (content) {
-    this.dialogBody.empty().append(content);
+  setContent: function (content) {
+    this.element.empty().append(content || this.option('template')(this.data()));
 
     return this;
   },
 
   /**
-   * 设置焦点，并移动到最顶层
+   * 设置zIndex
+   *
+   * @method setIndex
+   * @param {Number} [index] zIndex
+   */
+  setIndex: function (index) {
+    this.element.css({
+      zIndex: index || this.option('zIndex')
+    });
+
+    return this;
+  },
+
+  /**
+   * 设置遮罩层
+   *
+   * @method setMask
+   * @private
+   */
+  setMask: function () {
+    var dialog = this;
+    if (this.option('mask')) {
+      this.mask = new Mask({
+        position: this.option('position'),
+        delegates: {
+          'keydown': function (e) {
+            (e.keyCode === 27) && dialog.hide();
+          }
+        }
+      });
+    }
+  },
+
+  /**
+   * 计算对齐关系
+   *
+   * @method setAlign
+   * @private
+   */
+  setAlign: function () {
+    // align
+    var align = this.option('align'),
+      orig = this.option('orig');
+
+    $.each(['left', 'center', 'right'], function (i, n) {
+      if (align.indexOf(n) !== -1) {
+        orig.x = i / 2;
+        return false;
+      }
+    });
+
+    $.each(['top', 'middle', 'bottom'], function (i, n) {
+      if (align.indexOf(n) !== -1) {
+        orig.y = i / 2;
+        return false;
+      }
+    });
+  },
+
+  /**
+   * 设定位置（left 与 top）
+   *
+   * @method setPosition
+   */
+  setPosition: function () {
+    var fixed = this.option('position') === 'fixed',
+      orig = this.option('orig'),
+      offset = this.option('offset'),
+      left = ($(this.viewport).width() - this.element.outerWidth()) * orig.x +
+        (fixed ? 0 : $(this.viewport).scrollLeft()) + offset.x,
+      top = ($(this.viewport).height() - this.element.outerHeight()) * orig.y +
+        (fixed ? 0 : $(this.viewport).scrollTop()) + offset.y;
+
+    this.element.css({
+        left: Math.max(left, 0),
+        top: Math.max(top, 0)
+      });
+
+    return this;
+  },
+
+  /**
+   * 设置焦点
+   *
    * @method focus
    */
   focus: function () {
-    if (!this.dialog) {
-      return;
-    }
+    dialogInTop && dialogInTop.setIndex();
 
-    if (this.opt.zIndex < zIndex) {
-      this.opt.zIndex = ++zIndex;
-      this.dialog.css({
-        zIndex: zIndex
-      });
-    }
-
-    // this.dialog.focus();
-
-    this.fire('focus');
+    dialogInTop = this.setIndex(this.option('zIndex') + 1);
   },
 
   /**
-   * 隐藏窗体
-   * @method hide
-   * @param {Function} [callback] 回调函数
-   */
-  hide: function (callback) {
-    if (!this.dialog) {
-      return;
-    }
-
-    if (this.dialogBlocker) {
-      this.dialogBlocker.fadeOut(this.opt.speed);
-    }
-
-    this.opt.effects.hide.call(this, this.dialog, this.opt.speed, callback);
-    this.visible = false;
-
-    this.fire('hide');
-  },
-
-  /**
-   * 显示加载中遮罩层
-   * @param {Boolean} [show] 是否显示（默认为`TRUE`）
-   * @method loading
-   */
-  loading: function (show) {
-    this.dialogLoading.toggle(show !== false);
-
-    return this;
-  },
-
-  /**
-   * 设定窗体位置
-   * @method locate
-   * @private
-   */
-  locate: function () {
-    var locate = $.proxy(function () {
-
-      var dialog = this.dialog,
-
-        left = ($(this.ctx).width() - dialog.outerWidth()) *
-            this.opt.orig.x +
-            (this.opt.position === 'fixed' ? 0 : $(this.ctx).scrollLeft()) +
-            this.opt.offset.x,
-        top = ($(this.ctx).height() - dialog.outerHeight()) *
-            this.opt.orig.y +
-            (this.opt.position === 'fixed' ? 0 : $(this.ctx).scrollTop()) +
-            this.opt.offset.y;
-
-      dialog.animate({
-          left: Math.max(left, 0),
-          top: Math.max(top, 0)
-        }, this.opt.speed * 0.1);
-
-    }, this);
-
-    locate();
-
-    // 固定位置
-    if (this.opt.sticky) {
-
-      $(this.ctx)
-        .off('.l.' + this.guid)
-        .on('resize.l.' + this.guid +
-            (this.opt.position === 'fixed' ? '' : ' scroll.l.' + this.guid),
-            locate);
-
-    } else {
-
-      locate = null;
-
-    }
-
-    return this;
-  },
-
-  /**
-   * 显示窗体
+   * 显示对话框
+   *
    * @method show
    */
   show: function () {
-    if (!this.dialog) {
-      return;
+    if (!this.rendered) {
+      // 遮罩层，必须先于 render
+      this.setMask();
+
+      // 确保插入到DOM
+      this.render();
+
+      // 插入到文档流之后才能准确计算位置
+      this.setPosition();
     }
 
-    if (this.dialogBlocker) {
-      this.dialogBlocker.fadeIn(this.opt.speed);
-    }
+    this.mask && this.mask.show();
 
-    this.visible = true;
-    this.opt.effects.show.call(this, this.dialog, this.opt.speed);
+    Dialog.EFFECT[this.option('effect')].show.call(this);
 
-    this.fire('show');
-
-    this.focus();
+    this.state(Dialog.STATE.VISIBLE);
   },
 
   /**
-   * 设置标题
-   * @method title
-   * @param {Mixture} title 标题
+   * 隐藏对话框
+   *
+   * @method hide
    */
-  title: function (title) {
+  hide: function () {
+    this.mask && this.mask.hide();
 
-    if (title === false) {
-      this.dialog.addClass(this.opt.clsHook.call(this, 'notitle'));
-      this.dialogTitle.hide().empty();
-    } else {
-      this.dialog.removeClass(this.opt.clsHook.call(this, 'notitle'));
-      this.dialogTitle.html(title).show();
-    }
+    Dialog.EFFECT[this.option('effect')].hide.call(this);
 
-    return this;
+    this.state(Dialog.STATE.HIDDEN);
+  },
+
+  /**
+   * 销毁
+   *
+   * @method destroy
+   */
+  destroy: function () {
+    // 先销毁遮罩层
+    this.mask && this.mask.destroy();
+
+    dialogInTop === this && (dialogInTop = null);
+
+    return Dialog.superclass.destroy.apply(this);
   }
 
 });
 
-return Dialog;
+Dialog.STATE = {
+  INITIAL: -1,
+  READY: 0,
+  VISIBLE: 1,
+  HIDDEN: 2
+};
+
+Dialog.EFFECT = {
+
+  none: {
+    show: function (callback) {
+      this.element.show(callback);
+    },
+    hide: function (callback) {
+      this.element.hide(callback);
+    }
+  },
+
+  // 对话框显示隐藏时的动画效果
+  fade: {
+    show: function (callback) {
+      this.element.fadeIn(200, callback);
+    },
+    hide: function (callback) {
+      this.element.fadeOut(200, callback);
+    }
+  }
+};
+
+module.exports = Dialog;
 
 });

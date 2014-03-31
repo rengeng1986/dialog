@@ -1,0 +1,65 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>alert</title>
+<link rel="stylesheet" href="./dialog.css">
+</head>
+<body>
+<p>p</p>
+<p>p</p>
+<p>p</p>
+<p>p</p>
+<p>p</p>
+<p>p</p>
+<p>p</p>
+<p>p</p>
+<p>p</p>
+<p>p</p>
+<p>p</p>
+<p>p</p>
+<p>p</p>
+<p>p</p>
+<p>p</p>
+<p>p</p>
+<p>p</p>
+<p>p</p>
+<p>p</p>
+<p>p</p>
+<p>p</p>
+<p>p</p>
+<p>p</p>
+<script src="../vendor/jquery/jquery.js"></script>
+<script src="../vendor/seajs/sea.js"></script>
+<script>
+  seajs.config({
+    'base': '../sea-modules/',
+    'map': [
+      ['/sea-modules/jquery', '/vendor/jquery/jquery']
+    ],
+    'alias': {
+      '$': 'jquery',
+      'alert': 'pandora/dialog/1.0.0/alert'
+    }
+  });
+  seajs.use(['alert'], function (Alert) {
+
+    'use strict';
+
+    new Alert({
+      align: 'topleft',
+      content: '带“确定”的对话框，模拟`window.alert`'
+    });
+
+    console.log(new Alert({
+      title: '我有标题,',
+      content: '带“确定”的对话框，模拟`window.alert`'
+    }).on({
+      submit: function () {
+        console.log('submit');
+      }
+    }));
+  });
+</script>
+</body>
+</html>

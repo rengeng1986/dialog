@@ -1,15 +1,14 @@
 define(function (require, exports, module) {
 
 /**
- * 弹窗
+ * 对话框
+ *
  * @module Dialog
  */
 
 'use strict';
 
-var $ = require('$'),
-  Class = require('class'),
-  Dialog = require('./dialog');
+var Dialog = require('./dialog');
 
 /**
  * Tips
@@ -17,23 +16,21 @@ var $ = require('$'),
  * @extends Dialog
  * @constructor
  */
-var Tips = new Class(Dialog, {
+module.exports = Dialog.extend({
 
-    options: {
-      timeout: 2,
-      title: false,
-      closeTrigger: false,
-      on: {
-        show: function () {
-          setTimeout($.proxy(function () {
-            this.close(this.opt.callback);
-          }, this), this.opt.timeout * 1000);
-        }
+  defaults: {
+    timeout: 2,
+    close: '',
+    events: {
+      // 设置主体内容前
+      'after:show': function () {
+        setTimeout($.proxy(function () {
+          this.hide();
+        }, this), this.option('timeout') * 1000);
       }
     }
+  }
 
-  });
-
-return Tips;
+});
 
 });
