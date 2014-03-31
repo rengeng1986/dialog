@@ -8,7 +8,8 @@ define(function (require, exports, module) {
 
 'use strict';
 
-var Dialog = require('./dialog');
+var $ = require('$'),
+  Dialog = require('./dialog');
 
 /**
  * Tips
