@@ -1,12 +1,8 @@
 {
   "name": "dialog",
   "version": "1.0.0",
-  "description": "alert, confirm, dialog, prompt, tips",
-  "keywords": [
-    "dialog",
-    "seajs",
-    "modules"
-  ],
+  "description": "dialog, alert, confirm, tips",
+  "keywords": [ "dialog", "seajs", "modules" ],
   "homepage": "https://github.com/crossjs/dialog",
   "bugs": {
     "url": "https://github.com/crossjs/dialog/issues"
@@ -48,12 +44,7 @@
   },
   "family": "pandora",
   "spm": {
-    "output": [
-      "alert.js",
-      "confirm.js",
-      "dialog.js",
-      "tips.js"
-    ],
+    "output": [ "alert.js", "confirm.js", "dialog.js", "tips.js" ],
     "alias": {
       "$": "$",
       "handlebars": "gallery/handlebars/1.0.2/runtime",
