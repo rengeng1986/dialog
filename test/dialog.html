@@ -55,7 +55,9 @@
       });
 
       asyncTest('dialog.hide', function() {
-        var dialog = new Dialog('text string');
+        var dialog = new Dialog({
+          content: 'text string'
+        });
         dialog.hide();
         setTimeout(function () {
           equal( dialog.state(), Dialog.STATE.HIDDEN, '' );
@@ -65,8 +67,39 @@
         }, 1000);
       });
 
+      asyncTest('dialog.close', function() {
+        var dialog = new Dialog({
+          content: 'text string'
+        });
+        dialog.$('[data-role=close]').trigger('click');
+        setTimeout(function () {
+          equal( dialog.state(), Dialog.STATE.HIDDEN, '' );
+          ok( dialog.element.is(':hidden'), '' );
+          dialog.destroy();
+          start();
+        }, 1000);
+      });
+
+      asyncTest('dialog.close', function() {
+        var dialog = new Dialog({
+          content: 'text string',
+          events: {
+            'close': function () { return false; }
+          }
+        });
+        dialog.$('[data-role=close]').trigger('click');
+        setTimeout(function () {
+          equal( dialog.state(), Dialog.STATE.VISIBLE, '' );
+          ok( dialog.element.is(':visible'), '' );
+          dialog.destroy();
+          start();
+        }, 1000);
+      });
+
       asyncTest('dialog.destroy', function() {
-        var dialog = new Dialog('text string');
+        var dialog = new Dialog({
+          content: 'text string'
+        });
         dialog.destroy();
         setTimeout(function () {
           equal( typeof dialog.uniqueId, 'undefined', '' );

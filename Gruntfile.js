@@ -1,6 +1,6 @@
 /*
- * class
- * https://github.com/crossjs/class
+ * dialog
+ * https://github.com/crossjs/dialog
  *
  * Copyright (c) 2014 crossjs
  * Licensed under the MIT license.
@@ -12,9 +12,6 @@ module.exports = function(grunt) {
 
   // load all grunt tasks
   require('matchdep').filterDev('grunt-*').forEach(grunt.loadNpmTasks);
-
-  var transport = require('grunt-cmd-transport');
-  var style = transport.style.init(grunt);
 
   grunt.initConfig({
 
@@ -60,8 +57,7 @@ module.exports = function(grunt) {
         version: '<%= pkg.version %>',
         options: {
           paths: 'src',
-          outdir: 'doc',
-          themedir: 'vendor/yuidoc-bootstrap'
+          outdir: 'doc'
         }
       }
     },
@@ -134,33 +130,15 @@ module.exports = function(grunt) {
           src: ['*.handlebars'],
           dest: '.build/'
         }]
-      },
-      css: {
-        options: {
-          parsers: {
-            '.css' : [style.css2jsParser]
-          }
-        },
-        files: [{
-          expand: true,
-          cwd: 'src/',
-          src: ['*.css'],
-          dest: '.build/'
-        }]
       }
     },
 
     concat: {
       options: {
         debug: true,
-        include: 'relative',
-        css2js: transport.style.css2js
+        include: 'relative'
       },
       dialog: {
-        // options: {
-        //   debug: true,
-        //   include: 'relative'
-        // },
         files: [{
           expand: true,
           cwd: '.build/',
@@ -170,7 +148,6 @@ module.exports = function(grunt) {
       },
       others: {
         options: {
-          debug: true,
           include: 'self'
         },
         files: [{
@@ -212,7 +189,7 @@ module.exports = function(grunt) {
 
   grunt.registerTask('demo', ['clean:sea', 'copy:sea']);
 
-  grunt.registerTask('doc', ['yuidoc', 'clean:pages', 'copy:doc', 'clean:doc']);
+  grunt.registerTask('doc', ['clean:doc', 'yuidoc', 'clean:pages', 'copy:doc']);
 
   grunt.registerTask('test', ['jshint', 'qunit']);
 

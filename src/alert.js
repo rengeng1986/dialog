@@ -29,7 +29,7 @@ module.exports = Dialog.extend({
     },
     events: {
       // 设置主体内容前
-      'before:setContent': function () {
+      'before:render': function () {
         this.data({
           title: this.option('title'),
           submit: this.option('submit')

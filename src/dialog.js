@@ -40,11 +40,14 @@ var Dialog = Widget.extend({
         (e.keyCode === 27) && this.hide();
       },
       'mousedown': 'focus',
-      'click [data-role=close]': 'hide'
+      'click [data-role=close]': 'close'
     },
     // 对话框显示隐藏时的动画效果
     effect: 'fade',
     // element: '<div class="ue-component"></div>',
+    events: {
+      'after:render': 'setPosition'
+    },
     // 对话框ID
     // id: '',
     // 是否模拟为模态对话框，即显示遮罩层
@@ -84,9 +87,6 @@ var Dialog = Widget.extend({
       content: this.option('content')
     });
 
-    // 设置内容
-    this.setContent();
-
     // 计算对齐
     this.setAlign();
 
@@ -94,18 +94,6 @@ var Dialog = Widget.extend({
 
     // 自动显示
     this.option('autoShow') && this.show();
-
-    return this;
-  },
-
-  /**
-   * 设置内容
-   *
-   * @method setContent
-   * @param {Mixed} [content] 内容
-   */
-  setContent: function (content) {
-    this.element.empty().append(content || this.option('template')(this.data()));
 
     return this;
   },
@@ -204,6 +192,15 @@ var Dialog = Widget.extend({
   },
 
   /**
+   * 点击关闭按钮
+   *
+   * @method close
+   */
+  close: function () {
+    this.fire('close') !== false && this.hide();
+  },
+
+  /**
    * 显示对话框
    *
    * @method show
@@ -215,9 +212,6 @@ var Dialog = Widget.extend({
 
       // 确保插入到DOM
       this.render();
-
-      // 插入到文档流之后才能准确计算位置
-      this.setPosition();
     }
 
     this.mask && this.mask.show();
