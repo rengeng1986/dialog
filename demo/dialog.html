@@ -46,25 +46,6 @@
 
     'use strict';
 
-    new Dialog({
-        content: 'text string',
-        align: 'topleft'
-      });
-
-    new Dialog({
-        content: '<i>html string</i>',
-        align: 'lefttop',
-        offset: {
-          x: 50,
-          y: 10
-        }
-      });
-
-    new Dialog({
-        content: 'text string',
-        align: 'bottomright'
-      });
-
     console.log(new Dialog({
       position: 'absolute',
       content: '绝对定位；有遮罩层；机率性不可关闭；关闭后销毁对象',
@@ -78,6 +59,29 @@
         }
       }
     }));
+
+    new Dialog({
+        content: 'topright',
+        baseXY: { x: 1, y: 0 },
+        selfXY: { x: 1, y: 0 }
+      });
+
+    new Dialog({
+        content: '<i>lefttop + offset</i> <button id="trigger">#trigger</button>',
+        baseXY: { x: 0, y: 0 },
+        selfXY: { x: 0, y: 0 },
+        offset: {
+          x: 50,
+          y: 10
+        }
+      });
+
+    new Dialog({
+        content: '#trigger',
+        trigger: '#trigger',
+        baseXY: { x: 0.5, y: 0 },
+        selfXY: { x: 0.5, y: 0 }
+      });
   });
 </script>
 </body>

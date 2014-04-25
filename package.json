@@ -48,7 +48,7 @@
     "alias": {
       "$": "$",
       "handlebars": "gallery/handlebars/1.0.2/runtime",
-      "widget": "pandora/widget/1.0.0/widget"
+      "overlay": "pandora/overlay/1.0.0/overlay"
     }
   }
 }
