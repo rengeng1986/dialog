@@ -1,0 +1,167 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>dialog</title>
+<link rel="stylesheet" href="../vendor/qunit/qunit.css">
+</head>
+<body>
+  <h1 id="qunit-header">QUnit Test Suite</h1>
+  <h2 id="qunit-banner"></h2>
+  <div id="qunit-testrunner-toolbar"></div>
+  <h2 id="qunit-userAgent"></h2>
+  <ol id="qunit-tests"></ol>
+  <div id="qunit-fixture">test markup</div>
+  <script src="../vendor/jquery/jquery.js"></script>
+  <script src="../vendor/seajs/sea.js"></script>
+  <script src="../vendor/seajs/seajs-text.js"></script>
+  <script src="../vendor/qunit/qunit.js"></script>
+  <script>
+    QUnit.config.autostart = false;
+
+    seajs.config({
+      'base': '../sea-modules/',
+      'map': [
+        ['/sea-modules/jquery', '/vendor/jquery/jquery']
+      ],
+      'alias': {
+        '$': 'jquery',
+        'handlebars': 'gallery/handlebars/1.0.2/handlebars',
+        'overlay': 'pandora/overlay/1.0.0/overlay'
+      }
+    });
+
+    seajs.use(['../src/dialog'], function (Dialog) {
+
+      'use strict';
+
+      QUnit.start();
+
+      var dialog;
+
+      test('trigger', function() {
+        var trigger = $('<div id="trigger"/>').appendTo('#qunit-fixture');
+        dialog = new Dialog({
+          content: 'trigger',
+          effect: 'none',
+          trigger: '#trigger'
+        });
+        ok( dialog.is(':hidden'), '' );
+        trigger.trigger('click');
+        ok( dialog.is(':visible'), '' );
+        dialog.destroy();
+        trigger.remove();
+      });
+
+      test('mask', function() {
+        dialog = new Dialog({
+          content: 'mask',
+          effect: 'none',
+          mask: true
+        });
+        equal( typeof dialog.mask, 'object', '' );
+        ok( dialog.mask.is(':visible'), '' );
+        dialog.hide();
+        ok( dialog.mask.is(':hidden'), '' );
+        dialog.show();
+        var keydown = $.Event('keydown');
+        keydown.which = keydown.keyCode = 27;
+        dialog.mask.$().trigger(keydown);
+        ok( dialog.mask.is(':hidden'), '' );
+        dialog.destroy();
+        equal( typeof dialog.mask, 'undefined', '' );
+      });
+
+      test('text', function() {
+        dialog = new Dialog({
+          content: 'text'
+        });
+        equal( dialog.role('content').text(), 'text', '' );
+        dialog.destroy();
+      });
+
+      test('html', function() {
+        dialog = new Dialog({
+          content: '<i>html</i>'
+        });
+        equal( dialog.role('content').text(), 'html', '' );
+        equal( dialog.role('content').html(), '<i>html</i>', '' );
+        dialog.destroy();
+      });
+
+      test('keydown/escape', function() {
+        dialog = new Dialog({
+          content: 'keydown/escape',
+          effect: 'none'
+        });
+        var keydown = $.Event('keydown');
+        keydown.which = keydown.keyCode = 27;
+        dialog.$().trigger(keydown);
+        ok( dialog.is(':hidden'), '' );
+        dialog.destroy();
+      });
+
+      test('focus', function() {
+        var dialog1 = new Dialog({
+          content: 'focus'
+        });
+        dialog = new Dialog({
+          content: 'focus'
+        });
+        dialog1.$().trigger('mousedown');
+        dialog.$().trigger('mousedown');
+        equal( dialog1.$().css('zIndex'), dialog1.option('css/zIndex'), '' );
+        equal( dialog.$().css('zIndex'), dialog.option('css/zIndex') + 1, '' );
+        dialog1.destroy();
+        dialog.destroy();
+      });
+
+      test('hide/show', function() {
+        var dialog = new Dialog({
+          content: 'hide/show',
+          effect: 'none'
+        });
+        dialog.hide();
+        ok( dialog.is(':hidden'), '' );
+        dialog.show();
+        ok( dialog.is(':visible'), '' );
+        dialog.destroy();
+      });
+
+      test('close', function() {
+        var dialog = new Dialog({
+          content: 'close',
+          effect: 'none'
+        });
+        dialog.role('close').trigger('click');
+        ok( dialog.element.is(':hidden'), '' );
+        dialog.destroy();
+      });
+
+      test('close/returnFalse', function() {
+        var dialog = new Dialog({
+          content: 'close/returnFalse',
+          effect: 'none',
+          events: {
+            'close': function () { return false; }
+          }
+        });
+        dialog.role('close').trigger('click');
+        ok( dialog.is(':visible'), '' );
+        dialog.destroy();
+      });
+
+      test('destroy', function() {
+        var dialog = new Dialog({
+          content: 'destroy',
+          effect: 'none'
+        });
+        dialog.destroy();
+        equal( typeof dialog.uniqueId, 'undefined', '' );
+        equal( typeof dialog.destroy, 'function', '' );
+      });
+
+    });
+  </script>
+</body>
+</html>
