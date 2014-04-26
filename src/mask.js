@@ -20,8 +20,7 @@ var $ = require('$'),
 var Mask = Overlay.extend({
 
   defaults: {
-    // autoShow: true,
-    classPrefix: 'ue-mask',
+    // classPrefix: 'ue-mask',
     css: {
       position: (!!window.ActiveXObject && !window.XMLHttpRequest) ? 'absolute' : 'fixed',
       left: 0,
@@ -35,11 +34,29 @@ var Mask = Overlay.extend({
 
   setup: function () {
     var self = this,
-      resize;
+      baseElement = self.option('baseElement');
+
+    if (baseElement) {
+      self.baseElement = $(baseElement);
+      self.setPosition = setPosition;
+    } else {
+      if (self.option('css/position') === 'absolute') {
+        self.baseElement = $(self.document);
+        self.setPosition = setPosition;
+
+        $(self.viewport).on('resize.' + self.uniqueId, function () {
+          self.setPosition();
+        });
+
+        self.resizingBinded = true;
+      } else {
+        self.setPosition = function () {};
+      }
+    }
 
     // IE6
     if (!!window.ActiveXObject && !window.XMLHttpRequest) {
-      $('<iframe src="about:blank" frameborder="0"></iframe>')
+      $('<iframe src="about:blank"></iframe>')
         .css({
           width: '100%',
           height: '100%',
@@ -49,32 +66,12 @@ var Mask = Overlay.extend({
     }
 
     Mask.superclass.setup.apply(self);
-
-    // 调整尺寸
-    if (self.option('css/position') === 'absolute') {
-      resize = function () {
-        self.element
-          // 先重置成100%，避免出现多余的滚动条
-          .css({
-            width: '100%',
-            height: '100%'
-          })
-          .css({
-            width: $(self.document).width(),
-            height: $(self.document).height()
-          });
-      };
-
-      resize();
-
-      $(self.viewport).on('resize.' + self.uniqueId, resize);
-    }
   },
 
   destroy: function () {
     var self = this;
 
-    if (self.option('css/position') === 'absolute') {
+    if (self.resizingBinded) {
       $(self.viewport).off('resize.' + self.uniqueId);
     }
 
@@ -82,6 +79,23 @@ var Mask = Overlay.extend({
   }
 
 });
+
+/* jshint validthis:true */
+function setPosition () {
+  var self = this;
+
+  self.element
+    .css({
+      width: 0,
+      height: 0
+    })
+    .css({
+      width: self.baseElement.outerWidth(),
+      height: self.baseElement.outerHeight()
+    });
+
+  Mask.superclass.setPosition.apply(self);
+}
 
 module.exports = Mask;
 

@@ -39,15 +39,36 @@
     ],
     'alias': {
       '$': 'jquery',
-      'dialog': 'pandora/dialog/1.0.0/dialog'
+        '$-debug': 'jquery',
+      'dialog': 'pandora/dialog/1.0.0/dialog-debug'
     }
   });
   seajs.use(['dialog'], function (Dialog) {
 
     'use strict';
 
+    var baseElement = new Dialog({
+      css: {
+        position: 'absolute',
+        width: 400,
+        height: 200,
+        effect: 'none'
+      },
+      baseXY: {
+        x: 0.5,
+        y: 0
+      },
+      selfXY: {
+        x: 0.5,
+        y: 0
+      }
+    });
+
     console.log(new Dialog({
-      position: 'absolute',
+      css: {
+        position: 'absolute'
+      },
+      baseElement: baseElement.$(),
       content: '绝对定位；有遮罩层；机率性不可关闭；关闭后销毁对象',
       mask: true,
       events: {
@@ -59,6 +80,8 @@
         }
       }
     }));
+
+    return;
 
     new Dialog({
         content: 'topright',

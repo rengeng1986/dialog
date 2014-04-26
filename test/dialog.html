@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <title>dialog</title>
 <link rel="stylesheet" href="../vendor/qunit/qunit.css">
+<link rel="stylesheet" href="../demo/dialog.css">
 </head>
 <body>
   <h1 id="qunit-header">QUnit Test Suite</h1>
@@ -54,7 +55,9 @@
       });
 
       test('mask', function() {
+        var baseElement = $('<div id="trigger"/>').appendTo('#qunit-fixture');
         dialog = new Dialog({
+          baseElement: trigger,
           content: 'mask',
           effect: 'none',
           mask: true
@@ -70,6 +73,21 @@
         ok( dialog.mask.is(':hidden'), '' );
         dialog.destroy();
         equal( typeof dialog.mask, 'undefined', '' );
+        baseElement.remove();
+      });
+
+      test('mask/resize', function() {
+        dialog = new Dialog({
+          css: {
+            position: 'absolute'
+          },
+          content: 'mask/resize',
+          effect: 'none',
+          mask: true
+        });
+        $(window).triggerHandler('resize');
+        ok( 1, '' );
+        dialog.destroy();
       });
 
       test('text', function() {

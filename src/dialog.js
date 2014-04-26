@@ -142,6 +142,7 @@ var Dialog = Overlay.extend({
     // 遮罩层
     if (self.option('mask') && !self.mask) {
       self.mask = new Mask({
+        baseElement: self.option('baseElement'),
         container: self.element,
         css: {
           position: self.option('css/position')
