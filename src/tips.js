@@ -8,8 +8,7 @@ define(function (require, exports, module) {
 
 'use strict';
 
-var $ = require('$'),
-  Dialog = require('./dialog');
+var Dialog = require('./dialog');
 
 /**
  * Tips
@@ -17,21 +16,26 @@ var $ = require('$'),
  * @extends Dialog
  * @constructor
  */
-module.exports = Dialog.extend({
+var Tips = Dialog.extend({
 
   defaults: {
     timeout: 2,
-    close: '',
-    events: {
-      // 设置主体内容前
-      'after:show': function () {
-        setTimeout($.proxy(function () {
-          this.hide();
-        }, this), this.option('timeout') * 1000);
-      }
-    }
+    close: ''
+  },
+
+  render: function () {
+    var self = this;
+
+    Tips.superclass.render.apply(self);
+
+    setTimeout(function () {
+      self.destroy();
+    }, self.option('timeout') * 1000);
+
   }
 
 });
+
+module.exports = Tips;
 
 });

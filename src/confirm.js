@@ -16,13 +16,26 @@ var Dialog = require('./dialog');
  * @extends Dialog
  * @constructor
  */
-module.exports = Dialog.extend({
+var Confirm = Dialog.extend({
 
   defaults: {
-    submit: '确定',
     cancel: '取消',
-    // 事件代理
-    delegates: {
+    mask: true,
+    submit: '确定',
+    title: '确认框'
+  },
+
+  setup: function () {
+    var self = this;
+
+    // 初始化data，用于模板渲染
+    self.data({
+      title: self.option('title'),
+      submit: self.option('submit'),
+      cancel: self.option('cancel')
+    });
+
+    self.initDelegates({
       'click [data-role=submit]': function (e) {
         e.preventDefault();
         this.fire('submit') !== false && this.hide();
@@ -31,22 +44,19 @@ module.exports = Dialog.extend({
         e.preventDefault();
         this.fire('cancel') !== false && this.hide();
       }
-    },
-    events: {
-      // 设置主体内容前
-      'before:render': function () {
-        this.data({
-          title: this.option('title'),
-          submit: this.option('submit'),
-          cancel: this.option('cancel')
-        });
-      },
-      'after:hide': 'destroy'
-    },
-    mask: true,
-    title: '确认框'
+    });
+
+    Confirm.superclass.setup.apply(self);
+  },
+
+  hide: function () {
+    Confirm.superclass.hide.apply(this);
+    // TODO: 目前直接调用 destroy，将导致直接跳过隐藏动画
+    this.destroy();
   }
 
 });
+
+module.exports = Confirm;
 
 });

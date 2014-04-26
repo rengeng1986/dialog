@@ -11,36 +11,46 @@ define(function (require, exports, module) {
 var Dialog = require('./dialog');
 
 /**
- * Confirm
- * @class Confirm
+ * Alert
+ * @class Alert
  * @extends Dialog
  * @constructor
  */
-module.exports = Dialog.extend({
+var Alert = Dialog.extend({
 
   defaults: {
     submit: '确定',
-    // 事件代理
-    delegates: {
+    mask: true,
+    title: '提示框'
+  },
+
+  setup: function () {
+    var self = this;
+
+    // 初始化data，用于模板渲染
+    self.data({
+      title: self.option('title'),
+      submit: self.option('submit')
+    });
+
+    self.initDelegates({
       'click [data-role=submit]': function (e) {
         e.preventDefault();
         this.fire('submit') !== false && this.hide();
       }
-    },
-    events: {
-      // 设置主体内容前
-      'before:render': function () {
-        this.data({
-          title: this.option('title'),
-          submit: this.option('submit')
-        });
-      },
-      'after:hide': 'destroy'
-    },
-    mask: true,
-    title: '提示框'
+    });
+
+    Alert.superclass.setup.apply(self);
+  },
+
+  hide: function () {
+    Alert.superclass.hide.apply(this);
+    // TODO: 目前直接调用 destroy，将导致直接跳过隐藏动画
+    this.destroy();
   }
 
 });
+
+module.exports = Alert;
 
 });

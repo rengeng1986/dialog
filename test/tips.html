@@ -1,0 +1,87 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>tips</title>
+<link rel="stylesheet" href="../vendor/qunit/qunit.css">
+</head>
+<body>
+  <h1 id="qunit-header">QUnit Test Suite</h1>
+  <h2 id="qunit-banner"></h2>
+  <div id="qunit-testrunner-toolbar"></div>
+  <h2 id="qunit-userAgent"></h2>
+  <ol id="qunit-tests"></ol>
+  <div id="qunit-fixture">test markup</div>
+  <script src="../vendor/jquery/jquery.js"></script>
+  <script src="../vendor/seajs/sea.js"></script>
+  <script src="../vendor/seajs/seajs-text.js"></script>
+  <script src="../vendor/qunit/qunit.js"></script>
+  <script>
+    QUnit.config.autostart = false;
+
+    seajs.config({
+      'base': '../sea-modules/',
+      'map': [
+        ['/sea-modules/jquery', '/vendor/jquery/jquery']
+      ],
+      'alias': {
+        '$': 'jquery',
+        'handlebars': 'gallery/handlebars/1.0.2/handlebars',
+        'overlay': 'pandora/overlay/1.0.0/overlay'
+      }
+    });
+
+    seajs.use(['../src/tips'], function (Tips) {
+
+      'use strict';
+
+      QUnit.start();
+
+      var dialog;
+
+      test('timeout', function() {
+        dialog = new Tips({
+          content: 'timeout',
+          effect: 'none'
+        });
+        ok( dialog.is(':visible'), '' );
+      });
+
+      asyncTest('timeout/1', function() {
+        dialog = new Tips({
+          content: 'timeout',
+          effect: 'none'
+        });
+        setTimeout(function () {
+          ok( dialog.is(':visible'), '' );
+          start();
+        }, 1000);
+      });
+
+      asyncTest('timeout/2', function() {
+        dialog = new Tips({
+          content: 'timeout',
+          effect: 'none'
+        });
+        setTimeout(function () {
+          equal( typeof dialog.uniqueId, 'undefined', '' );
+          start();
+        }, 2000);
+      });
+
+      asyncTest('timeout/3', function() {
+        dialog = new Tips({
+          content: 'timeout',
+          effect: 'none',
+          timeout: 3
+        });
+        setTimeout(function () {
+          ok( dialog.is(':visible'), '' );
+          start();
+        }, 2000);
+      });
+
+    });
+  </script>
+</body>
+</html>

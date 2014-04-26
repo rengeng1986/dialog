@@ -1,0 +1,110 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>confirm</title>
+<link rel="stylesheet" href="../vendor/qunit/qunit.css">
+</head>
+<body>
+  <h1 id="qunit-header">QUnit Test Suite</h1>
+  <h2 id="qunit-banner"></h2>
+  <div id="qunit-testrunner-toolbar"></div>
+  <h2 id="qunit-userAgent"></h2>
+  <ol id="qunit-tests"></ol>
+  <div id="qunit-fixture">test markup</div>
+  <script src="../vendor/jquery/jquery.js"></script>
+  <script src="../vendor/seajs/sea.js"></script>
+  <script src="../vendor/seajs/seajs-text.js"></script>
+  <script src="../vendor/qunit/qunit.js"></script>
+  <script>
+    QUnit.config.autostart = false;
+
+    seajs.config({
+      'base': '../sea-modules/',
+      'map': [
+        ['/sea-modules/jquery', '/vendor/jquery/jquery']
+      ],
+      'alias': {
+        '$': 'jquery',
+        'handlebars': 'gallery/handlebars/1.0.2/handlebars',
+        'overlay': 'pandora/overlay/1.0.0/overlay'
+      }
+    });
+
+    seajs.use(['../src/confirm'], function (Confirm) {
+
+      'use strict';
+
+      QUnit.start();
+
+      var dialog;
+
+      test('trigger', function() {
+        var trigger = $('<div id="trigger"/>').appendTo('#qunit-fixture');
+        dialog = new Confirm({
+          content: 'trigger',
+          effect: 'none',
+          trigger: '#trigger'
+        });
+        ok( dialog.is(':hidden'), '' );
+        trigger.trigger('click');
+        ok( dialog.is(':visible'), '' );
+        dialog.destroy();
+        trigger.remove();
+      });
+
+      test('mask', function() {
+        dialog = new Confirm({
+          content: 'mask',
+          effect: 'none'
+        });
+        equal( typeof dialog.mask, 'object', '' );
+        ok( dialog.mask.is(':visible'), '' );
+        dialog.hide();
+        equal( typeof dialog.mask, 'undefined', '' );
+      });
+
+      test('submit', function() {
+        dialog = new Confirm({
+          content: 'submit',
+          effect: 'none'
+        });
+        dialog.role('submit').trigger('click');
+        equal( typeof dialog.uniqueId, 'undefined', '' );
+        equal( typeof dialog.destroy, 'function', '' );
+      });
+
+      test('cancel', function() {
+        dialog = new Confirm({
+          content: 'cancel',
+          effect: 'none'
+        });
+        dialog.role('cancel').trigger('click');
+        equal( typeof dialog.uniqueId, 'undefined', '' );
+        equal( typeof dialog.destroy, 'function', '' );
+      });
+
+      test('submit/cancel/returnFalse', function() {
+        dialog = new Confirm({
+          content: 'submit/cancel/returnFalse',
+          effect: 'none',
+          events: {
+            submit: function () {
+              return false;
+            }
+          }
+        });
+        dialog.on('cancel', function () {
+          return false;
+        });
+        dialog.role('submit').trigger('click');
+        ok( dialog.is(':visible'), '' );
+        dialog.role('cancel').trigger('click');
+        ok( dialog.is(':visible'), '' );
+        dialog.destroy();
+      });
+
+    });
+  </script>
+</body>
+</html>

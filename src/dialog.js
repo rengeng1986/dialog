@@ -7,9 +7,7 @@ define(function (require, exports, module) {
 
 'use strict';
 
-var $ = require('$'),
-  Overlay = require('overlay'),
-  // Handlebars = require('handlebars'),
+var Overlay = require('overlay'),
 
   // 遮罩层
   Mask = require('./mask');
@@ -26,10 +24,17 @@ var dialogInTop;
 var Dialog = Overlay.extend({
 
   defaults: {
+    baseXY: {
+      x: 0.5,
+      y: 0.5
+    },
     // 样式前缀
     classPrefix: 'ue-dialog',
     // 关闭
     close: '&times;',
+    css: {
+      position: (!!window.ActiveXObject && !window.XMLHttpRequest) ? 'absolute' : 'fixed'
+    },
     // 事件代理
     delegates: {
       'keydown': function (e) {
@@ -40,7 +45,10 @@ var Dialog = Overlay.extend({
     },
     // 是否模拟为模态对话框，即显示遮罩层
     mask: false,
-    position: (!!window.ActiveXObject && !window.XMLHttpRequest) ? 'absolute' : 'fixed',
+    selfXY: {
+      x: 0.5,
+      y: 0.5
+    },
     // 对话框模板
     template: require('./dialog.handlebars'),
     // 对话框触发点
@@ -52,7 +60,7 @@ var Dialog = Overlay.extend({
 
     // 初始化data，用于模板渲染
     self.data({
-      classPrefix: self.option('classPrefix'),
+      // classPrefix: self.option('classPrefix'),
       close: self.option('close'),
       content: self.option('content')
     });
@@ -68,7 +76,7 @@ var Dialog = Overlay.extend({
    */
   setIndex: function (index) {
     this.element.css({
-      zIndex: index || this.option('zIndex')
+      zIndex: index || this.option('css/zIndex')
     });
 
     return this;
@@ -82,7 +90,7 @@ var Dialog = Overlay.extend({
   focus: function () {
     dialogInTop && dialogInTop.setIndex();
 
-    dialogInTop = this.setIndex(this.option('zIndex') + 1);
+    dialogInTop = this.setIndex(this.option('css/zIndex') + 1);
 
     this.element.focus();
 
@@ -129,26 +137,26 @@ var Dialog = Overlay.extend({
   render: function () {
     var self = this;
 
+    Dialog.superclass.render.apply(self);
+
     // 遮罩层
     if (self.option('mask') && !self.mask) {
       self.mask = new Mask({
-        // autoShow: false,
         container: self.element,
         css: {
-          position: self.option('position')
+          position: self.option('css/position')
         },
         delegates: {
           'keydown': function (e) {
             (e.keyCode === 27) && self.hide();
           }
         },
+        effect: self.option('effect'),
         insert: function () {
           this.container.before(this.element);
         }
       });
     }
-
-    Dialog.superclass.render.apply(self);
 
     return self;
   },

@@ -67,7 +67,7 @@ var Mask = Overlay.extend({
 
       resize();
 
-      $(self.viewport).on('resize.p.' + self.uniqueId, resize);
+      $(self.viewport).on('resize.' + self.uniqueId, resize);
     }
   },
 
@@ -75,7 +75,7 @@ var Mask = Overlay.extend({
     var self = this;
 
     if (self.option('css/position') === 'absolute') {
-      $(self.viewport).off('resize.p.' + self.uniqueId);
+      $(self.viewport).off('resize.' + self.uniqueId);
     }
 
     Mask.superclass.destroy.apply(self);
