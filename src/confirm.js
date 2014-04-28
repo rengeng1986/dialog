@@ -52,7 +52,7 @@ var Confirm = Dialog.extend({
   hide: function () {
     Confirm.superclass.hide.apply(this);
     // TODO: 目前直接调用 destroy，将导致直接跳过隐藏动画
-    this.destroy();
+    !this.option('trigger') && this.destroy();
   }
 
 });

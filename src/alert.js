@@ -46,7 +46,7 @@ var Alert = Dialog.extend({
   hide: function () {
     Alert.superclass.hide.apply(this);
     // TODO: 目前直接调用 destroy，将导致直接跳过隐藏动画
-    this.destroy();
+    !this.option('trigger') && this.destroy();
   }
 
 });
