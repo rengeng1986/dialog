@@ -1,7 +1,7 @@
 #dialog
 
-[![Build Status](https://api.travis-ci.org/crossjs/dialog.png?branch=master)](http://travis-ci.org/crossjs/dialog)
-[![Coverage Status](https://coveralls.io/repos/crossjs/dialog/badge.png?branch=master)](https://coveralls.io/r/crossjs/dialog?branch=master)
+[![Build Status](https://api.travis-ci.org/pandorajs/dialog.png?branch=master)](http://travis-ci.org/pandorajs/dialog)
+[![Coverage Status](https://coveralls.io/repos/pandorajs/dialog/badge.png?branch=master)](https://coveralls.io/r/pandorajs/dialog?branch=master)
 
  > dialog, alert, confirm, tips, seajs module
 
@@ -17,6 +17,10 @@
 
 1. run `spm install pandora/dialog`
 1. write `require('pandora/dialog/VERSION.NUMBER/dialog')`
+
+##find examples
+
+1. view the source files in '/src'
 
 ##history
 

@@ -3,24 +3,24 @@
   "version": "1.0.0",
   "description": "dialog, alert, confirm, tips",
   "keywords": [ "dialog", "seajs", "modules" ],
-  "homepage": "https://github.com/crossjs/dialog",
+  "homepage": "https://github.com/pandorajs/dialog",
   "bugs": {
-    "url": "https://github.com/crossjs/dialog/issues"
+    "url": "https://github.com/pandorajs/dialog/issues"
   },
   "licenses": [
     {
       "type": "MIT",
-      "url": "https://github.com/crossjs/dialog/blob/master/LICENSE-MIT"
+      "url": "https://github.com/pandorajs/dialog/blob/master/LICENSE-MIT"
     }
   ],
   "author": {
-    "name": "crossjs",
-    "url": "https://github.com/crossjs"
+    "name": "pandorajs",
+    "url": "https://github.com/pandorajs"
   },
   "main": "Gruntfile.js",
   "repository": {
     "type": "git",
-    "url": "git://github.com/crossjs/dialog.git"
+    "url": "git://github.com/pandorajs/dialog.git"
   },
   "scripts": {
     "test": "grunt qunit"
