@@ -38,11 +38,11 @@ var Confirm = Dialog.extend({
     self.initDelegates({
       'click [data-role=submit]': function (e) {
         e.preventDefault();
-        this.fire('submit') !== false && this.hide();
+        this.fire('submit') && this.hide();
       },
       'click [data-role=cancel]': function (e) {
         e.preventDefault();
-        this.fire('cancel') !== false && this.hide();
+        this.fire('cancel') && this.hide();
       }
     });
 

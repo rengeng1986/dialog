@@ -36,7 +36,7 @@ var Alert = Dialog.extend({
     self.initDelegates({
       'click [data-role=submit]': function (e) {
         e.preventDefault();
-        this.fire('submit') !== false && this.hide();
+        this.fire('submit') && this.hide();
       }
     });
 
