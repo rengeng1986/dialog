@@ -59,11 +59,15 @@ var Dialog = Overlay.extend({
 
   setup: function () {
     var self = this,
+      title = self.option('title'),
       content = self.option('content');
 
-    // 初始化data，用于模板渲染
     content && self.data({
       content: content
+    });
+
+    title && self.data({
+      title: title
     });
 
     Dialog.superclass.setup.apply(self);
