@@ -30,10 +30,12 @@ var Dialog = Overlay.extend({
     },
     // 样式前缀
     classPrefix: 'ue-dialog',
-    // 关闭
-    close: '&times;',
     css: {
       position: (!!window.ActiveXObject && !window.XMLHttpRequest) ? 'absolute' : 'fixed'
+    },
+    data: {
+      // 关闭
+      close: '&times;'
     },
     // 事件代理
     delegates: {
@@ -56,13 +58,12 @@ var Dialog = Overlay.extend({
   },
 
   setup: function () {
-    var self = this;
+    var self = this,
+      content = self.option('content');
 
     // 初始化data，用于模板渲染
-    self.data({
-      // classPrefix: self.option('classPrefix'),
-      close: self.option('close'),
-      content: self.option('content')
+    content && self.data({
+      content: content
     });
 
     Dialog.superclass.setup.apply(self);

@@ -19,19 +19,15 @@ var Dialog = require('./dialog');
 var Alert = Dialog.extend({
 
   defaults: {
-    submit: '确定',
     mask: true,
-    title: '提示框'
+    data: {
+      submit: '确定',
+      title: '提示框'
+    }
   },
 
   setup: function () {
     var self = this;
-
-    // 初始化data，用于模板渲染
-    self.data({
-      title: self.option('title'),
-      submit: self.option('submit')
-    });
 
     self.initDelegates({
       'click [data-role=submit]': function (e) {

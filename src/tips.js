@@ -20,7 +20,9 @@ var Tips = Dialog.extend({
 
   defaults: {
     timeout: 2,
-    close: ''
+    data: {
+      close: ''
+    }
   },
 
   render: function () {
