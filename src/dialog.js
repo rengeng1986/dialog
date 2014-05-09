@@ -88,6 +88,17 @@ var Dialog = Overlay.extend({
   },
 
   /**
+   * 设置位置
+   *
+   * @method setPosition
+   */
+  setPosition: function () {
+    this.mask && this.mask.setPosition();
+
+    Dialog.superclass.setPosition.apply(this);
+  },
+
+  /**
    * 设置焦点
    *
    * @method focus
@@ -149,9 +160,9 @@ var Dialog = Overlay.extend({
       self.mask = new Mask({
         baseElement: self.option('baseElement'),
         container: self.element,
-        css: {
-          position: self.option('css/position')
-        },
+        // css: {
+        //   position: self.option('css/position')
+        // },
         delegates: {
           'keydown': function (e) {
             (e.keyCode === 27) && self.hide();

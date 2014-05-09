@@ -47,10 +47,6 @@ var Mask = Overlay.extend({
         $(self.viewport).on('resize.' + self.uniqueId, function () {
           self.setPosition();
         });
-
-        self.resizingBinded = true;
-      } else {
-        self.setPosition = function () {};
       }
     }
 
@@ -69,13 +65,9 @@ var Mask = Overlay.extend({
   },
 
   destroy: function () {
-    var self = this;
+    $(this.viewport).off('resize.' + this.uniqueId);
 
-    if (self.resizingBinded) {
-      $(self.viewport).off('resize.' + self.uniqueId);
-    }
-
-    Mask.superclass.destroy.apply(self);
+    Mask.superclass.destroy.apply(this);
   }
 
 });
