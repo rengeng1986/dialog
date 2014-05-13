@@ -21,9 +21,9 @@ var Confirm = Dialog.extend({
   defaults: {
     mask: true,
     data: {
-      cancel: '取消',
-      submit: '确定',
-      title: '确认框'
+      cancel: '<span class="btn btn-default">取消</span>',
+      submit: '<span class="btn btn-primary">确定</span>',
+      title: '确认'
     }
   },
 

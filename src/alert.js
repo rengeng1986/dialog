@@ -21,8 +21,8 @@ var Alert = Dialog.extend({
   defaults: {
     mask: true,
     data: {
-      submit: '确定',
-      title: '提示框'
+      submit: '<span class="btn btn-primary">确定</span>',
+      title: '提示'
     }
   },
 
